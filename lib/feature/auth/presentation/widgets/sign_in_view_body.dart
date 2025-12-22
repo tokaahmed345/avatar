@@ -4,8 +4,11 @@ import 'package:avatar/core/utils/function/validators.dart';
 import 'package:avatar/core/utils/router/routes_name.dart';
 import 'package:avatar/core/utils/styles/app_style.dart';
 import 'package:avatar/core/utils/widgets/custom_text_form_field.dart';
+import 'package:avatar/core/utils/widgets/snackbar.dart';
+import 'package:avatar/feature/auth/presentation/view_model/cubit/sign_in_cubit.dart';
 import 'package:avatar/feature/auth/presentation/widgets/sign_in_curve_clipper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class SignInViewBody extends StatefulWidget {
@@ -21,6 +24,13 @@ class _SignInViewBodyState extends State<SignInViewBody> {
 final GlobalKey<FormState>formKey=GlobalKey();
   bool _obscurePassword = true;
   bool _rememberMe = false;
+    @override
+  void dispose() {
+    _emailController.dispose();
+
+    _passwordController.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -146,29 +156,48 @@ key: formKey,
             
                         const SizedBox(height: 16),
             
-                        SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.buttonBackground,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            onPressed: () {
-                              if(formKey.currentState!.validate()){
-GoRouter.of(context).go(RoutesName.home);
-                              }
-                            },
-                            child: Text(
-                              "Sign In",
-                              style: AppStyle.text20.copyWith(
-                                fontWeight: FontWeight.w400,
-                                color: AppColors.whiteColor,
-                              ),
-                            ),
-                          ),
+                        BlocConsumer<SignInCubit, SignInState>(
+                          listener: (context, state) {
+                             print('STATE ===> $state');
+
+                    if (state is SignInFailure) {
+                      showSnackBarFuction(context, state.errorMessage, isError: true);
+                    }
+                    if (state is SignInSuccess) {
+                      showSnackBarFuction(
+                              context, "LogIN successfully", isError: false)
+                          .then((_) {
+                        if (context.mounted) context.go(RoutesName.home);
+                      });
+                    }
+                          },
+                          builder: (context, state) {
+                            return  SizedBox(
+                                                  width: double.infinity,
+                                                  height: 48,
+                                                  child:state is SignInLoading?Center(child: CircularProgressIndicator(color: AppColors.primary,),): ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: AppColors.buttonBackground,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(16),
+                                                      ),
+                                                    ),
+                                                    onPressed: () {
+                                                      if(formKey.currentState!.validate()){
+                                                        context.read<SignInCubit>().signIn(email: _emailController.text, password: _passwordController.text);
+                        // GoRouter.of(context).go(RoutesName.home);
+                                                      }
+                                                    },
+                                                    child: Text(
+                                                      "Sign In",
+                                                      style: AppStyle.text20.copyWith(
+                                                        fontWeight: FontWeight.w400,
+                                                        color: AppColors.whiteColor,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                          },
                         ),
                       ],
                     ),
