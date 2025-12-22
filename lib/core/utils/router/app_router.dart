@@ -1,6 +1,7 @@
 
 import 'package:avatar/core/utils/router/routes_name.dart';
 import 'package:avatar/feature/auth/presentation/sign_in.dart';
+import 'package:avatar/feature/home/presentation/home_view.dart';
 import 'package:avatar/feature/human_detection/presentation/human_detection.dart';
 import 'package:go_router/go_router.dart';
 
@@ -30,7 +31,11 @@ class AppRouter {
         name: RoutesName.humanDetection,
         builder: (context, state) => const LivenessDetectionPage (),
       ),
-    
+          GoRoute(
+        path: RoutesName.home,
+        name: RoutesName.home,
+        builder: (context, state) => const HomeView (),
+      ),
     ],
   );
 }

@@ -158,7 +158,7 @@ key: formKey,
                             ),
                             onPressed: () {
                               if(formKey.currentState!.validate()){
-GoRouter.of(context).go(RoutesName.humanDetection);
+GoRouter.of(context).go(RoutesName.home);
                               }
                             },
                             child: Text(
