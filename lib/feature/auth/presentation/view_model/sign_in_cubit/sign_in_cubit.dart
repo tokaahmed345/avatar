@@ -1,6 +1,7 @@
 import 'package:avatar/feature/auth/data/model/sign_in_model.dart';
-import 'package:avatar/feature/auth/data/repo/sign_in_repo.dart';
+import 'package:avatar/feature/auth/data/repo/sign_in/sign_in_repo.dart';
 import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
 part 'sign_in_state.dart';

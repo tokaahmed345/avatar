@@ -31,28 +31,51 @@ class DioConsumer implements ApiService {
       );
     }
   }
+@override
+Future post(
+  String endPoint, {
+  Map<String, dynamic>? data,
+  Map<String, dynamic>? headers,
+  bool isFormData = false,
+}) async {
+  try {
+    final response = await dio.post(
+      endPoint,
+      data: isFormData
+          ? FormData.fromMap(data ?? {})
+          : data,
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json',
+          ...?headers,
+        },
+      ),
+    );
 
-  @override
-  Future post(
-    String endPoint, {
-    Map<String, dynamic>? data,
-    Map<String, dynamic>? headers,
-    bool isFormData = false,
-  }) async {
-    try {
-      final response = await dio.post(
-        endPoint,
-        data:
-            isFormData ? FormData.fromMap(data as Map<String, dynamic>) : data,
-        options: Options(headers: headers),
-      );
-      return response.data;
-    } on DioException catch (e) {
-      throw CustomException(
-        message: ServerFailure.fromDioExcepiton(e).errMessage,
-      );
+    print("STATUS CODE: ${response.statusCode}");
+    print("RESPONSE DATA: ${response.data}");
+
+    return response.data;
+  } on DioException catch (e) {
+  String errorMessage = "Something went wrong. Please try again later.";
+
+  if (e.response?.data != null) {
+    final data = e.response!.data;
+
+    if (data is Map && data.containsKey('detail')) {
+      errorMessage = data['detail'];
+    } else if (data is Map && data.containsKey('message')) {
+      errorMessage = data['message'];
     }
   }
+
+  print("❌ API ERROR MESSAGE: $errorMessage");
+
+  throw CustomException(message: errorMessage);
+}
+
+}
+
 
   @override
   Future patch(
