@@ -1,5 +1,7 @@
 import 'package:avatar/core/utils/colors/app_colors.dart';
+import 'package:avatar/core/utils/constant/shared_prefrence.dart';
 import 'package:avatar/core/utils/router/routes_name.dart';
+import 'package:avatar/core/utils/service_locator/service_locator.dart';
 import 'package:avatar/core/utils/styles/app_style.dart';
 import 'package:avatar/core/utils/widgets/snackbar.dart';
 import 'package:avatar/feature/auth/presentation/view_model/log_out_cubit/log_out_cubit.dart';
@@ -100,6 +102,8 @@ class AlertDialogBody extends StatelessWidget {
                         ),
                         onPressed: () async {
                           if (context.mounted) {
+                                final prefs = getIt.get<SharedPrefs>();
+    await prefs.clearSession();
   context.read<LogOutCubit>().logOut();
 
                           }

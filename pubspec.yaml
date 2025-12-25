@@ -40,7 +40,9 @@ dependencies:
   get_it: ^9.2.0
   go_router: ^17.0.1
   google_fonts: ^6.3.3
+  permission_handler: ^12.0.1
   shared_preferences: ^2.5.4
+  speech_to_text: ^7.3.0
 
 dev_dependencies:
   flutter_lints: ^4.0.0

@@ -6,7 +6,6 @@ import 'package:avatar/feature/auth/presentation/view_model/log_out_cubit/log_ou
 import 'package:avatar/feature/chat/chat_view.dart';
 import 'package:avatar/feature/home/presentation/widgets/alert_dialog_body.dart';
 import 'package:avatar/feature/home/presentation/widgets/glass_button.dart';
-import 'package:avatar/feature/home/presentation/widgets/language_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

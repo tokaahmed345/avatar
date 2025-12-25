@@ -215,6 +215,8 @@ class _SignInViewBodyState extends State<SignInViewBody> {
                                       ),
                                       onPressed: () {
                                         if (formKey.currentState!.validate()) {
+                                              FocusScope.of(context).unfocus(); 
+
                                           context.read<SignInCubit>().signIn(
                                             email: _emailController.text,
                                             password: _passwordController.text,

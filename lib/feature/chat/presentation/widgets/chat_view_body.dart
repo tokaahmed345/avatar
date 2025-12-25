@@ -8,6 +8,9 @@ import 'package:avatar/feature/chat/presentation/widgets/chat_bubble.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+
 class ChatViewBody extends StatefulWidget {
   const ChatViewBody({
     super.key,
@@ -27,45 +30,65 @@ class ChatViewBody extends StatefulWidget {
 class _ChatViewBodyState extends State<ChatViewBody> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-
   final SharedPrefs sharedPrefs = getIt.get<SharedPrefs>();
 
   List<Map<String, dynamic>> messages = [];
   String? businessId;
 
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  bool _speechAvailable = false;
+  bool _isRequestingPermission = false;
+
   @override
   void initState() {
     super.initState();
-      messages.add({
-    "text": "مرحبًا! كيف يمكنني مساعدتك اليوم؟",
-    "isUser": false,
-  });
+    _speech = stt.SpeechToText();
+    messages.add({"text": "مرحبًا! كيف يمكنني مساعدتك اليوم؟", "isUser": false});
     _loadBusinessId();
+    _initSpeech();
+  }
+
+  void _safeSetState(VoidCallback fn) {
+    if (!mounted) return;
+    setState(fn);
   }
 
   Future<void> _loadBusinessId() async {
     final id = await sharedPrefs.getBusinessId();
-    setState(() {
+    _safeSetState(() {
       businessId = id;
     });
-    debugPrint('📦 BusinessId: $businessId');
+    print('📦 BusinessId: $businessId');
+  }
+
+  Future<void> _initSpeech() async {
+    print('🎤 Initializing speech...');
+
+    _speechAvailable = await _speech.initialize(
+      onStatus: (status) {
+        print('🎤 Status: $status');
+        _safeSetState(() {
+          if (status == 'done') _isListening = false;
+        });
+      },
+      onError: (error) {
+        print('🎤 Speech error: ${error.errorMsg}');
+        _safeSetState(() => _isListening = false);
+      },
+    );
+    print('🎤 Speech initialized: $_speechAvailable');
   }
 
   void _sendMessage() {
     final text = _controller.text.trim();
     if (text.isEmpty || businessId == null) return;
 
-    setState(() {
-      messages.add({
-        "text": text,
-        "isUser": true,
-      });
-    });
-
+    _safeSetState(() => messages.add({"text": text, "isUser": true}));
     _controller.clear();
     _scrollToBottom();
 
-    final language = detectLanguage(text);
+    final language = _detectLanguage(text);
 
     context.read<MessageCubit>().fetchMessage(
           businessId: businessId!,
@@ -74,7 +97,7 @@ class _ChatViewBodyState extends State<ChatViewBody> {
         );
   }
 
-  String detectLanguage(String text) {
+  String _detectLanguage(String text) {
     final arabicRegex = RegExp(r'[\u0600-\u06FF]');
     return arabicRegex.hasMatch(text) ? 'ar' : 'en';
   }
@@ -89,6 +112,52 @@ class _ChatViewBodyState extends State<ChatViewBody> {
         );
       }
     });
+  }
+
+  void _onMicPressed() async {
+    print('🎤 Mic pressed');
+
+    if (_isRequestingPermission) return;
+    _isRequestingPermission = true;
+
+    if (!await Permission.microphone.isGranted) {
+      if (!await Permission.microphone.request().isGranted) {
+        print('⚠️ Microphone permission denied');
+        _isRequestingPermission = false;
+        return;
+      }
+    }
+    _isRequestingPermission = false;
+
+    if (!_speechAvailable) return;
+
+    if (!_isListening) {
+      _safeSetState(() => _isListening = true);
+      print('🎤 Listening started');
+
+      _speech.listen(
+        onResult: (val) {
+          print('🎤 Recognized: ${val.recognizedWords}');
+          _safeSetState(() => _controller.text = val.recognizedWords);
+        },
+        localeId: widget.selectedLanguage,
+        listenMode: stt.ListenMode.dictation,
+      );
+    } else {
+      _safeSetState(() => _isListening = false);
+      print('🎤 Listening stopped');
+      _speech.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    print('🎤 Disposing ChatViewBody...');
+    _speech.stop();
+    _speech.cancel();
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -112,68 +181,48 @@ class _ChatViewBodyState extends State<ChatViewBody> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.mic),
+                    onPressed: _onMicPressed,
+                    icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
                   ),
                   const Spacer(),
                   Text(
                     'Chat',
-                    style: AppStyle.text18.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppStyle.text18.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close,
-                        color: AppColors.blackColor),
-                    onPressed: (){
-    FocusScope.of(context).unfocus(); 
-widget.onClose();
-                    }
+                    icon: const Icon(Icons.close, color: AppColors.blackColor),
+                    onPressed: () {
+                      FocusScope.of(context).unfocus();
+                      widget.onClose();
+                    },
                   ),
                 ],
               ),
             ),
             const Divider(),
-
             Expanded(
               child: BlocConsumer<MessageCubit, MessageState>(
                 listener: (context, state) {
                   if (state is MessageLoading) {
-                    setState(() {
-                      messages.add({
-                        "text": "",
-                        "isUser": false,
-                        "isLoading": true,
-                      });
-                    });
+                    _safeSetState(() => messages.add({"text": "", "isUser": false, "isLoading": true}));
                     _scrollToBottom();
                   }
-
                   if (state is MessageSuccess) {
-                    setState(() {
-                      if (messages.isNotEmpty &&
-                          messages.last["isLoading"] == true) {
-                        messages.removeLast();
-                      }
-                      messages.add({
-                        "text": state.messages.answer,
-                        "isUser": false,
-                      });
+                    _safeSetState(() {
+                      if (messages.isNotEmpty && messages.last["isLoading"] == true) messages.removeLast();
+                      messages.add({"text": state.messages.answer, "isUser": false});
                     });
                     _scrollToBottom();
                   }
-
                   if (state is MessageFailure) {
-                    setState(() {
-                      if (messages.isNotEmpty &&
-                          messages.last["isLoading"] == true) {
-                        messages.removeLast();
-                      }
-                      messages.add({
-                        "text": state.errMessage,
-                        "isUser": false,
-                      });
+                    _safeSetState(() {
+                      if (messages.isNotEmpty && messages.last["isLoading"] == true) messages.removeLast();
+                         String errorMessage = widget.selectedLanguage == 'ar'
+        ? 'حدثت مشكلة في الاتصال، يرجى المحاولة مرة أخرى'
+        : 'A connection error occurred, please try again';
+                      messages.add({"text": errorMessage
+                      , "isUser": false});
                     });
                     _scrollToBottom();
                   }
@@ -182,43 +231,33 @@ widget.onClose();
                   return ListView.builder(
                     controller: _scrollController,
                     physics: const BouncingScrollPhysics(),
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
                       final message = messages[index];
-
                       if (message["isLoading"] == true) {
                         return Align(
-      alignment: Alignment.centerLeft, 
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 20),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade300, 
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child:  SizedBox(
-          width: 24, 
-          height: 24,
-          child: SpinKitDoubleBounce(
-            color:Colors.grey,
-            size: 16,
-          ),
-        ),
-      ),
-    );
+                          alignment: Alignment.centerLeft,
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 20),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: SpinKitDoubleBounce(color: Colors.grey, size: 16),
+                            ),
+                          ),
+                        );
                       }
-
-                      return ChatBubble(
-                        text: message["text"],
-                        isUser: message["isUser"],
-                      );
+                      return ChatBubble(text: message["text"], isUser: message["isUser"]);
                     },
                   );
                 },
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.all(12),
               child: Row(
@@ -231,8 +270,7 @@ widget.onClose();
                         filled: true,
                         fillColor: Colors.grey.shade100,
                         border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(24),
+                          borderRadius: BorderRadius.circular(24),
                           borderSide: BorderSide.none,
                         ),
                       ),
@@ -241,13 +279,8 @@ widget.onClose();
                   const SizedBox(width: 8),
                   CircleAvatar(
                     radius: 20,
-                    backgroundColor:
-                        AppColors.primary.withOpacity(.8),
-                    child: IconButton(
-                      icon: const Icon(Icons.upload,
-                          color: Colors.white),
-                      onPressed: _sendMessage,
-                    ),
+                    backgroundColor: AppColors.primary.withOpacity(.8),
+                    child: IconButton(icon: const Icon(Icons.upload, color: Colors.white), onPressed: _sendMessage),
                   ),
                 ],
               ),
