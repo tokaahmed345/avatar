@@ -19,7 +19,13 @@ class HomeViewBody extends StatefulWidget {
 
 class _HomeViewBodyState extends State<HomeViewBody> {
   bool isChatOpen = false;
+  String selectedLanguage = 'ar';
 
+  void _onLanguageChanged(String lang) {
+    setState(() {
+      selectedLanguage = lang.toLowerCase(); 
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -54,7 +60,12 @@ class _HomeViewBodyState extends State<HomeViewBody> {
 
                 Row(
                   children: [
-                    LanguageButton(text: 'AR'),
+//                     LanguageButton(         text: selectedLanguage.toUpperCase(),
+//                       onTap:(){
+// //     _onLanguageChanged(selectedLanguage == 'ar' ? 'en' : 'ar');
+
+// //  print(selectedLanguage);
+//                       },),
                     const SizedBox(width: 12),
                     GlassIconButton(icon: Icons.volume_up),
                   ],
@@ -69,7 +80,7 @@ class _HomeViewBodyState extends State<HomeViewBody> {
               setState(() {
                 isChatOpen = false;
               });
-            },
+            }, selectedLanguage: selectedLanguage,
           ),
 
           AnimatedPositioned(

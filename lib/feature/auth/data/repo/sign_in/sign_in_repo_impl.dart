@@ -30,6 +30,7 @@ final SharedPrefs sharedPreferences;
       await sharedPreferences.saveRefreshToken(response['refresh']);
 final access = await sharedPreferences.getAccessToken();
 final refresh = await sharedPreferences.getRefreshToken();
+
 print('Access: $access');
 print('Refresh: $refresh');
 
@@ -38,6 +39,9 @@ print("LOGIN RESPONSE 👉 $response");
 
 
       final result = SignInModel.fromJson(response);
+      await sharedPreferences.saveBusinessId(
+  result.admin!.business.toString(),
+);
       return right(result);
     } on Failure catch (e) {
       print("Failure: ${e.errMessage}");
