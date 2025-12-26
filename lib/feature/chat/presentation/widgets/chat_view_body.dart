@@ -8,8 +8,8 @@ import 'package:avatar/feature/chat/presentation/widgets/chat_bubble.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
+// import 'package:permission_handler/permission_handler.dart';
+// import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class ChatViewBody extends StatefulWidget {
   const ChatViewBody({
@@ -35,24 +35,33 @@ class _ChatViewBodyState extends State<ChatViewBody> {
   List<Map<String, dynamic>> messages = [];
   String? businessId;
 
-  late stt.SpeechToText _speech;
-  bool _isListening = false;
-  bool _speechAvailable = false;
-  bool _isRequestingPermission = false;
+  // late stt.SpeechToText _speech;
+  // bool _isListening = false;
+  // bool _speechAvailable = false;
+  // bool _isRequestingPermission = false;
 
   @override
   void initState() {
     super.initState();
-    _speech = stt.SpeechToText();
+    // _speech = stt.SpeechToText();
     messages.add({"text": "مرحبًا! كيف يمكنني مساعدتك اليوم؟", "isUser": false});
     _loadBusinessId();
-    _initSpeech();
+    // _initSpeech();
   }
 
   void _safeSetState(VoidCallback fn) {
     if (!mounted) return;
     setState(fn);
   }
+void _clearChat() {
+  _safeSetState(() {
+    messages.clear();
+    messages.add({
+      "text": "مرحبًا! كيف يمكنني مساعدتك اليوم؟",
+      "isUser": false,
+    });
+  });
+}
 
   Future<void> _loadBusinessId() async {
     final id = await sharedPrefs.getBusinessId();
@@ -62,23 +71,23 @@ class _ChatViewBodyState extends State<ChatViewBody> {
     print('📦 BusinessId: $businessId');
   }
 
-  Future<void> _initSpeech() async {
-    print('🎤 Initializing speech...');
+  // Future<void> _initSpeech() async {
+  //   print('🎤 Initializing speech...');
 
-    _speechAvailable = await _speech.initialize(
-      onStatus: (status) {
-        print('🎤 Status: $status');
-        _safeSetState(() {
-          if (status == 'done') _isListening = false;
-        });
-      },
-      onError: (error) {
-        print('🎤 Speech error: ${error.errorMsg}');
-        _safeSetState(() => _isListening = false);
-      },
-    );
-    print('🎤 Speech initialized: $_speechAvailable');
-  }
+  //   _speechAvailable = await _speech.initialize(
+  //     onStatus: (status) {
+  //       print('🎤 Status: $status');
+  //       _safeSetState(() {
+  //         if (status == 'done') _isListening = false;
+  //       });
+  //     },
+  //     onError: (error) {
+  //       print('🎤 Speech error: ${error.errorMsg}');
+  //       _safeSetState(() => _isListening = false);
+  //     },
+  //   );
+  //   print('🎤 Speech initialized: $_speechAvailable');
+  // }
 
   void _sendMessage() {
     final text = _controller.text.trim();
@@ -114,47 +123,47 @@ class _ChatViewBodyState extends State<ChatViewBody> {
     });
   }
 
-  void _onMicPressed() async {
-    print('🎤 Mic pressed');
+  // void _onMicPressed() async {
+  //   print('🎤 Mic pressed');
 
-    if (_isRequestingPermission) return;
-    _isRequestingPermission = true;
+  //   if (_isRequestingPermission) return;
+  //   _isRequestingPermission = true;
 
-    if (!await Permission.microphone.isGranted) {
-      if (!await Permission.microphone.request().isGranted) {
-        print('⚠️ Microphone permission denied');
-        _isRequestingPermission = false;
-        return;
-      }
-    }
-    _isRequestingPermission = false;
+  //   if (!await Permission.microphone.isGranted) {
+  //     if (!await Permission.microphone.request().isGranted) {
+  //       print('⚠️ Microphone permission denied');
+  //       _isRequestingPermission = false;
+  //       return;
+  //     }
+  //   }
+  //   _isRequestingPermission = false;
 
-    if (!_speechAvailable) return;
+  //   if (!_speechAvailable) return;
 
-    if (!_isListening) {
-      _safeSetState(() => _isListening = true);
-      print('🎤 Listening started');
+  //   if (!_isListening) {
+  //     _safeSetState(() => _isListening = true);
+  //     print('🎤 Listening started');
 
-      _speech.listen(
-        onResult: (val) {
-          print('🎤 Recognized: ${val.recognizedWords}');
-          _safeSetState(() => _controller.text = val.recognizedWords);
-        },
-        localeId: widget.selectedLanguage,
-        listenMode: stt.ListenMode.dictation,
-      );
-    } else {
-      _safeSetState(() => _isListening = false);
-      print('🎤 Listening stopped');
-      _speech.stop();
-    }
-  }
+  //     _speech.listen(
+  //       onResult: (val) {
+  //         print('🎤 Recognized: ${val.recognizedWords}');
+  //         _safeSetState(() => _controller.text = val.recognizedWords);
+  //       },
+  //       localeId: widget.selectedLanguage,
+  //       listenMode: stt.ListenMode.dictation,
+  //     );
+  //   } else {
+  //     _safeSetState(() => _isListening = false);
+  //     print('🎤 Listening stopped');
+  //     _speech.stop();
+  //   }
+  // }
 
   @override
   void dispose() {
     print('🎤 Disposing ChatViewBody...');
-    _speech.stop();
-    _speech.cancel();
+    // _speech.stop();
+    // _speech.cancel();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -165,11 +174,13 @@ class _ChatViewBodyState extends State<ChatViewBody> {
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
-      bottom: widget.isChatOpen ? 0 : -280,
+      bottom: widget.isChatOpen ? 0 : -MediaQuery.of(context).size.height * 0.66
+,
       left: 0,
       right: 0,
       child: Container(
-        height: 260,
+        height: MediaQuery.of(context).size.height * 0.66
+,
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -180,10 +191,10 @@ class _ChatViewBodyState extends State<ChatViewBody> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  IconButton(
-                    onPressed: _onMicPressed,
-                    icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
-                  ),
+                  // IconButton(
+                  //   onPressed: _onMicPressed,
+                  //   icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                  // ),
                   const Spacer(),
                   Text(
                     'Chat',
@@ -194,6 +205,8 @@ class _ChatViewBodyState extends State<ChatViewBody> {
                     icon: const Icon(Icons.close, color: AppColors.blackColor),
                     onPressed: () {
                       FocusScope.of(context).unfocus();
+                          _clearChat(); 
+
                       widget.onClose();
                     },
                   ),

@@ -85,7 +85,7 @@ class _HomeViewBodyState extends State<HomeViewBody> {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
-            bottom: isChatOpen ? 280 : 24,
+            bottom: isChatOpen ? MediaQuery.of(context).size.height * 0.68: 24,
             left: 0,
             right: 0,
             child: Row(
