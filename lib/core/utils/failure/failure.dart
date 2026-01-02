@@ -1,46 +1,91 @@
+import 'package:dio/dio.dart';
+
+abstract class Failure {
+  final String errMessage;
+
+  Failure({required this.errMessage});
+}
 
 
-class Failure {
+class ServerFailure extends Failure {
+  ServerFailure({required super.errMessage});
+
+  factory ServerFailure.fromDioExcepiton(
+    DioException dioException,
+  ) {
+    switch (dioException.type) {
+      case DioExceptionType.connectionTimeout:
+        return ServerFailure(errMessage: 'Connection timeout');
+
+      case DioExceptionType.sendTimeout:
+        return ServerFailure(errMessage: 'Send timeout');
+
+      case DioExceptionType.receiveTimeout:
+        return ServerFailure(errMessage: 'Receive timeout');
+
+      case DioExceptionType.badResponse:
+        return ServerFailure.fromResponse(
+          dioException.response!.statusCode!,
+          dioException.response!.data,
+        );
+
+      case DioExceptionType.badCertificate:
+        return ServerFailure(errMessage: 'Bad certificate');
+
+      case DioExceptionType.cancel:
+        return ServerFailure(
+            errMessage: 'Request to API server was cancelled');
+
+      case DioExceptionType.connectionError:
+        return ServerFailure(errMessage: 'Connection error');
+
+      default:
+        return ServerFailure(
+          errMessage: 'Oops, an unknown error occurred',
+        );
+    }
+  }
+
+  /// هنا بنستخرج الرسالة من الرد اللي جاي من السيرفر بأي شكل
+  factory ServerFailure.fromResponse(
+    int statusCode,
+    dynamic response,
+  ) {
+    if (statusCode >= 400 && statusCode < 500) {
+      String? message;
+
+      // لو الرد جاي بشكل Map (كـ JSON)
+      if (response is Map<String, dynamic>) {
+      message = response['errors']?['msg'] ?? // أول أولوية
+          response['message'] ?? // fallback لو مش موجودة
+          response['msg'] ?? 
+          response['error'] ?? 
+          response['errors']?['message'];
+    }
+
+      return ServerFailure(
+        errMessage: message ?? 'حدث خطأ غير معروف من السيرفر.',
+      );
+    } else if (statusCode == 500) {
+      return ServerFailure(
+        errMessage: 'Internal Server Failure, please try again later.',
+      );
+    } else {
+      return ServerFailure(
+        errMessage: 'Unknown error, status code $statusCode',
+      );
+    }
+  }
+}
+
+
+class CustomException implements Exception {
   final String message;
 
-  Failure(this.message);
+  CustomException({required this.message});
 
-  factory Failure.fromFirebaseAuthCode(String code) {
-    return Failure(_getMessageFromFirebaseCode(code));
-  }
-
-  factory Failure.fromException(Exception e) {
-    return Failure(e.toString());
-  }
-
-  static String _getMessageFromFirebaseCode(String code) {
-    switch (code) {
-      case 'email-already-in-use':
-        return 'This email is already in use.';
-      case 'invalid-email':
-        return 'The email address is not valid.';
-      case 'operation-not-allowed':
-        return 'Email/password accounts are not enabled.';
-      case 'weak-password':
-        return 'The password is too weak.';
-      case 'user-disabled':
-        return 'This user account has been disabled.';
-      case 'user-not-found':
-        return 'No user found with this email.';
-      case 'wrong-password':
-        return 'The password is incorrect.';
-      case 'too-many-requests':
-        return 'Too many requests. Please try again later.';
-      case 'network-request-failed':
-        return 'Network error. Please check your connection.';
-      case 'missing-password':
-        return 'Password is required.';
-      case 'missing-email':
-        return 'Email is required.';
-      case 'invalid-credential':
-        return 'Invalid password or email. Please check your account info.';
-      default:
-        return 'An unexpected error occurred. Please try again.';
-    }
+  @override
+  String toString() {
+    return message;
   }
 }
