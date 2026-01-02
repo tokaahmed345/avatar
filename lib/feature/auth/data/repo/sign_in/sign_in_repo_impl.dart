@@ -42,6 +42,9 @@ print("LOGIN RESPONSE 👉 $response");
       await sharedPreferences.saveBusinessId(
   result.admin!.business.toString(),
 );
+      await sharedPreferences.saveUserId(
+  result.admin!.id.toString(),
+);
       return right(result);
     } on Failure catch (e) {
       print("Failure: ${e.errMessage}");

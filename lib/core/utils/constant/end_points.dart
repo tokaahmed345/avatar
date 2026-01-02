@@ -5,4 +5,6 @@ class EndPoints {
   static const String logout= "$baseUrl/api/admin/logout/";
   static const String baseUrlAi = "https://avatarai-Kctyr.ondigitalocean.app";
  static const String message=  "$baseUrlAi/chat/message";
+ static const String voiceMessage=  "$baseUrlAi/avatar/message";
+
 }

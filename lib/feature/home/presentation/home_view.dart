@@ -1,5 +1,8 @@
+import 'package:avatar/core/utils/service_locator/service_locator.dart';
+import 'package:avatar/feature/home/presentation/view_model/cubit/voice_text_cubit.dart';
 import 'package:avatar/feature/home/presentation/widgets/home_view_body.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -22,17 +25,20 @@ class HomeView extends StatelessWidget {
             ],
           ),
         ) ??
-        false; 
+        false;
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () => _onWillPop(context), 
+      onWillPop: () => _onWillPop(context),
       child: Scaffold(
         backgroundColor: Colors.black,
         body: SafeArea(
-          child: HomeViewBody(),
+          child: BlocProvider(
+            create: (context) => getIt.get<VoiceTextCubit>(),
+            child: HomeViewBody(),
+          ),
         ),
       ),
     );

@@ -10,6 +10,9 @@ import 'package:avatar/feature/auth/presentation/view_model/sign_in_cubit/sign_i
 import 'package:avatar/feature/chat/data/repos/message_repo.dart';
 import 'package:avatar/feature/chat/data/repos/message_repo_impl.dart';
 import 'package:avatar/feature/chat/presentation/view_model/cubit/message_cubit.dart';
+import 'package:avatar/feature/home/data/repos/voice_text_repo.dart';
+import 'package:avatar/feature/home/data/repos/voice_text_repo_impl.dart';
+import 'package:avatar/feature/home/presentation/view_model/cubit/voice_text_cubit.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -36,4 +39,14 @@ Future<void> setUp() async {
 
   getIt.registerFactory<MessageCubit>(
       () => MessageCubit(getIt.get<MessageRepo>()));
+      
+
+
+
+
+       getIt.registerLazySingleton<VoiceTextRepo>(() => VoiceTextRepoImpl(apiService: getIt.get<ApiService>(), sharedPreferences: getIt.get<SharedPrefs>()));
+
+  getIt.registerFactory<VoiceTextCubit>(
+      () => VoiceTextCubit(getIt.get<VoiceTextRepo>()));
+      
 }
