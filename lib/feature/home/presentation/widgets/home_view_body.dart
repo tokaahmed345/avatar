@@ -390,6 +390,7 @@
 //     );
 //   }
 // }
+
 import 'package:avatar/core/utils/assets/app_assets.dart';
 import 'package:avatar/core/utils/colors/app_colors.dart';
 import 'package:avatar/core/utils/constant/shared_prefrence.dart';
@@ -411,15 +412,16 @@ class HomeViewBody extends StatefulWidget {
 }
 
 class _HomeViewBodyState extends State<HomeViewBody>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   bool isChatOpen = false;
 
   late stt.SpeechToText _speech;
   bool _isListening = false;
-  bool _userRequestedListening = false;
 
   String recognizedText = '';
   String detectedLanguage = 'ar';
+  String liveText = '';
+bool _isRestarting = false;
 
   late AnimationController _waveController;
 
@@ -437,6 +439,7 @@ class _HomeViewBodyState extends State<HomeViewBody>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _speech = stt.SpeechToText();
 
@@ -447,80 +450,126 @@ class _HomeViewBodyState extends State<HomeViewBody>
       upperBound: 1.5,
     );
 
-    _loadIds();
-    _startListening(); // يبدأ تلقائي
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _loadIds();
+      if (mounted && businessId != null && userId != null) {
+        _startListening();
+      }
+    });
   }
 
-  // ================= TOGGLE MIC =================
-  void _toggleListening() async {
-    if (_isListening) {
-      _userRequestedListening = false;
+  // ================= APP LIFECYCLE =================
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
+      await _startListening();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
       await _speech.stop();
       _waveController.stop();
-
-      setState(() => _isListening = false);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Microphone muted")),
-      );
-    } else {
-      _userRequestedListening = true;
-      await _startListening();
+      _isListening = false;
     }
   }
 
   // ================= START LISTENING =================
-  Future<void> _startListening() async {
-    bool available = await _speech.initialize(
-      onStatus: (status) {
-        if ((status == 'done' || status == 'notListening') && _isListening) {
-          _waveController.stop();
-          setState(() => _isListening = false);
+ Future<void> _startListening() async {
+  if (!mounted || _isListening || _isRestarting) return;
+
+  if (businessId == null || userId == null) {
+    await _loadIds();
+    if (businessId == null || userId == null) return;
+  }
+
+  bool available = await _speech.initialize(
+    onStatus: (status) async {
+      if (!mounted) return;
+
+      if (status == 'done' || status == 'notListening') {
+        if (_waveController.isAnimating) _waveController.stop();
+        setState(() {
+          _isListening = false;
+          liveText = '';
+        });
+
+        if (!_isRestarting && mounted) {
+          _isRestarting = true;
+          await Future.delayed(const Duration(milliseconds: 100));
+          _isRestarting = false;
+          if (mounted) _startListening();
         }
-      },
-    );
+      }
+    },
+    onError: (error) {
+      if (!mounted) return;
+      print("Speech error: $error");
+      if (_waveController.isAnimating) _waveController.stop();
+      setState(() {
+        _isListening = false;
+        liveText = '';
+      });
 
-    if (!available) return;
+      if (!_isRestarting && mounted) {
+        _isRestarting = true;
+        Future.delayed(const Duration(milliseconds: 200), () {
+          _isRestarting = false;
+          if (mounted) _startListening();
+        });
+      }
+    },
+  );
 
-    setState(() => _isListening = true);
-    _waveController
-      ..reset()
-      ..repeat(reverse: true);
+  if (!available || !mounted) return;
 
-    _speech.listen(
-      onResult: (result) {
-        if (result.finalResult) {
-          recognizedText = result.recognizedWords;
-          detectedLanguage = _detectLanguage(recognizedText);
+  setState(() => _isListening = true);
 
-          // ✅ SnackBar يعرض النص المتحوّل من الصوت
-          ScaffoldMessenger.of(context).clearSnackBars();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                "You said: $recognizedText",
-                textAlign: TextAlign.center,
-              ),
-              duration: const Duration(seconds: 3),
-            ),
-          );
+  _speech.listen(
+    listenMode: stt.ListenMode.dictation,
+    partialResults: true,
+    onResult: (result) async {
+      if (!mounted) return;
 
-          context.read<VoiceTextCubit>().sendVoiceText(
+      recognizedText = result.recognizedWords;
+      detectedLanguage = _detectLanguage(recognizedText);
+      setState(() => liveText = recognizedText);
+
+      if (recognizedText.isNotEmpty) {
+        if (!_waveController.isAnimating) _waveController.repeat(reverse: true);
+      } else {
+        if (_waveController.isAnimating) _waveController.stop();
+      }
+
+      if (result.finalResult && recognizedText.isNotEmpty) {
+        try {
+          await context.read<VoiceTextCubit>().sendVoiceText(
                 businessId: businessId!,
                 userId: userId!,
                 message: recognizedText,
                 language: detectedLanguage,
               );
-
-          if (!_userRequestedListening) {
-            _waveController.stop();
-            setState(() => _isListening = false);
-          }
+        } catch (e) {
+          print("Failed to send message: $e");
         }
-      },
-      listenMode: stt.ListenMode.confirmation,
-    );
-  }
+
+        recognizedText = '';
+        setState(() {
+          liveText = '';
+          _isListening = false;
+        });
+
+        if (_waveController.isAnimating) _waveController.stop();
+      }
+    },
+    onSoundLevelChange: (level) {
+      if (!mounted) return;
+      if (level > 3) {
+        if (!_waveController.isAnimating) _waveController.repeat(reverse: true);
+      } else {
+        if (_waveController.isAnimating) _waveController.stop();
+      }
+    },
+  );
+}
+
 
   // ================= LANGUAGE DETECTION =================
   String _detectLanguage(String text) {
@@ -531,6 +580,7 @@ class _HomeViewBodyState extends State<HomeViewBody>
   // ================= DISPOSE =================
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _waveController.dispose();
     _speech.stop();
     super.dispose();
@@ -592,7 +642,6 @@ class _HomeViewBodyState extends State<HomeViewBody>
                   fit: BoxFit.cover,
                 ),
               ),
-
               // ===== TOP BAR =====
               Positioned(
                 top: 16,
@@ -617,14 +666,31 @@ class _HomeViewBodyState extends State<HomeViewBody>
                   ],
                 ),
               ),
-
               // ===== CHAT =====
               ChtaView(
                 isChatOpen: isChatOpen,
                 selectedLanguage: detectedLanguage,
                 onClose: () => setState(() => isChatOpen = false),
               ),
-
+              // ===== LIVE TEXT DISPLAY =====
+              Positioned(
+                bottom: isChatOpen
+                    ? MediaQuery.of(context).size.height * 0.55
+                    : 100,
+                left: 24,
+                right: 24,
+                child: Text(
+                  liveText,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    shadows: [
+                      Shadow(blurRadius: 4, color: Colors.black54, offset: Offset(2,2))
+                    ],
+                  ),
+                ),
+              ),
               // ===== BOTTOM CONTROLS =====
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 300),
@@ -637,8 +703,8 @@ class _HomeViewBodyState extends State<HomeViewBody>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     GlassIconButton(
-                      icon: _isListening ? Icons.mic : Icons.mic_off,
-                      onTap: _toggleListening,
+                      icon:  Icons.mic ,
+                      onTap: () {},
                     ),
                     const SizedBox(width: 24),
                     buildWave(),
@@ -646,8 +712,7 @@ class _HomeViewBodyState extends State<HomeViewBody>
                     GlassIconButton(
                       icon: Icons.chat,
                       isActive: isChatOpen,
-                      onTap: () =>
-                          setState(() => isChatOpen = !isChatOpen),
+                      onTap: () => setState(() => isChatOpen = !isChatOpen),
                     ),
                   ],
                 ),
