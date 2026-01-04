@@ -13,6 +13,9 @@ import 'package:avatar/feature/chat/presentation/view_model/cubit/message_cubit.
 import 'package:avatar/feature/home/data/repos/voice_text_repo.dart';
 import 'package:avatar/feature/home/data/repos/voice_text_repo_impl.dart';
 import 'package:avatar/feature/home/presentation/view_model/cubit/voice_text_cubit.dart';
+import 'package:avatar/feature/session/data/repos/start_session_repos/start_session_repo.dart';
+import 'package:avatar/feature/session/data/repos/start_session_repos/start_session_repo_impl.dart';
+import 'package:avatar/feature/session/presentation/view_model/cubit/start_session_cubit.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -49,4 +52,8 @@ Future<void> setUp() async {
   getIt.registerFactory<VoiceTextCubit>(
       () => VoiceTextCubit(getIt.get<VoiceTextRepo>()));
       
+         getIt.registerLazySingleton<StartSessionRepo>(() => StartSessionRepoImpl(apiService: getIt.get<ApiService>(), ));
+
+  getIt.registerFactory<StartSessionCubit>(
+      () => StartSessionCubit(getIt.get<StartSessionRepo>()));
 }

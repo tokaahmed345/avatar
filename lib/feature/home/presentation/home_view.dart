@@ -1,6 +1,7 @@
 import 'package:avatar/core/utils/service_locator/service_locator.dart';
 import 'package:avatar/feature/home/presentation/view_model/cubit/voice_text_cubit.dart';
 import 'package:avatar/feature/home/presentation/widgets/home_view_body.dart';
+import 'package:avatar/feature/session/presentation/view_model/cubit/start_session_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -35,8 +36,11 @@ class HomeView extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.black,
         body: SafeArea(
-          child: BlocProvider(
-            create: (context) => getIt.get<VoiceTextCubit>(),
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (context) => getIt.get<VoiceTextCubit>()),
+              BlocProvider(create: (context) => getIt.get<StartSessionCubit>()),
+            ],
             child: HomeViewBody(),
           ),
         ),
