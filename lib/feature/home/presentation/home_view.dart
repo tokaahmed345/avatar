@@ -1,7 +1,8 @@
 import 'package:avatar/core/utils/service_locator/service_locator.dart';
 import 'package:avatar/feature/home/presentation/view_model/cubit/voice_text_cubit.dart';
 import 'package:avatar/feature/home/presentation/widgets/home_view_body.dart';
-import 'package:avatar/feature/session/presentation/view_model/cubit/start_session_cubit.dart';
+import 'package:avatar/feature/session/presentation/view_model/start_session_cubit/start_session_cubit.dart';
+import 'package:avatar/feature/session/presentation/view_model/stop_session_cubit/stop_session_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -40,6 +41,8 @@ class HomeView extends StatelessWidget {
             providers: [
               BlocProvider(create: (context) => getIt.get<VoiceTextCubit>()),
               BlocProvider(create: (context) => getIt.get<StartSessionCubit>()),
+               BlocProvider(create: (context) => getIt.get<StopSessionCubit>()),
+
             ],
             child: HomeViewBody(),
           ),

@@ -15,7 +15,10 @@ import 'package:avatar/feature/home/data/repos/voice_text_repo_impl.dart';
 import 'package:avatar/feature/home/presentation/view_model/cubit/voice_text_cubit.dart';
 import 'package:avatar/feature/session/data/repos/start_session_repos/start_session_repo.dart';
 import 'package:avatar/feature/session/data/repos/start_session_repos/start_session_repo_impl.dart';
-import 'package:avatar/feature/session/presentation/view_model/cubit/start_session_cubit.dart';
+import 'package:avatar/feature/session/data/repos/stop_session_repos/stop_session_repo.dart';
+import 'package:avatar/feature/session/data/repos/stop_session_repos/stop_session_repo_impl.dart';
+import 'package:avatar/feature/session/presentation/view_model/start_session_cubit/start_session_cubit.dart';
+import 'package:avatar/feature/session/presentation/view_model/stop_session_cubit/stop_session_cubit.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -52,8 +55,16 @@ Future<void> setUp() async {
   getIt.registerFactory<VoiceTextCubit>(
       () => VoiceTextCubit(getIt.get<VoiceTextRepo>()));
       
-         getIt.registerLazySingleton<StartSessionRepo>(() => StartSessionRepoImpl(apiService: getIt.get<ApiService>(), ));
+         getIt.registerLazySingleton<StartSessionRepo>(() => StartSessionRepoImpl(apiService: getIt.get<ApiService>(), prefs: getIt.get<SharedPrefs>(), ));
 
   getIt.registerFactory<StartSessionCubit>(
       () => StartSessionCubit(getIt.get<StartSessionRepo>()));
+
+
+         getIt.registerLazySingleton<StopSessionRepo>(() =>StopSessionRepoImpl (apiService: getIt.get<ApiService>(), prefs: getIt.get<SharedPrefs>(), ));
+
+  getIt.registerFactory<StopSessionCubit>(
+      () => StopSessionCubit(getIt.get<StopSessionRepo>()));
+
+
 }

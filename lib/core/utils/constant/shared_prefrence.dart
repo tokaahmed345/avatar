@@ -8,6 +8,7 @@ static const String _refreshKey = 'refresh_token';
   static const String _rememberMeKey = 'rememberMe'; 
   static const String _businessIdKey = 'businessId'; 
   static const String _userIdKey = 'userId'; 
+  static const String _sessionIdKey = 'sessionId'; 
 
 Future<void> saveAccessToken(String token) async {
   final prefs = await SharedPreferences.getInstance();
@@ -84,6 +85,15 @@ Future<String> getUserId() async {
 
 
 
+Future<void> saveSessionId(String sessionId) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(_sessionIdKey, sessionId);
+}
+
+Future<String> getSessionId() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString(_sessionIdKey)??"";
+}
 
 
 

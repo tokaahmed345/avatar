@@ -8,6 +8,7 @@ class EndPoints {
  static const String voiceMessage=  "$baseUrlAi/avatar/message";
  static const String startSession=  "$sessionBaseUrl/start";
    static const String sessionBaseUrl = "https://api.liveavatar.com/v1/sessions";
+ static const String stopSession=  "$sessionBaseUrl/stop";
 
 
 }
