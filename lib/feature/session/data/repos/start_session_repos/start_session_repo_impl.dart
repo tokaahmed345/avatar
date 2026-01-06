@@ -14,7 +14,7 @@ final SharedPrefs prefs;
   @override
   Future<Either<Failure, StartSession>> startSession() async{
   try {
-   String  token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZTViMDdlMWI1ODc0ZGU5OGM3Y2YzOTdjOGU0ZTRlZiIsInNlc3Npb25faWQiOiJlOGU1OTAyMy00ZDFjLTQ3MDktOTFjMC0yNjI5ZTczYjUzMWUiLCJzb3VyY2UiOiJBUEkiLCJzdGFydF9zZXNzaW9uX2RhdGEiOnsibW9kZSI6IkNVU1RPTSIsImF2YXRhcl9pZCI6IjFjNjkwZmU3LTIzZTAtNDlmOS1iZmJhLTE0MzQ0NDUwMjg1YiIsImxpdmVraXRfY29uZmlnIjpudWxsfSwiZXhwIjoxNzY3NjI4OTg5fQ.4e-hO3Ttsn-pUkvF5WwNMlGFaIZVP9f-IZtTixS9QiE";
+   String  token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYjQ5ZjJhYzkxNjg0YWU3ODM1ZmYxMWFjNjY4MjczOSIsInNlc3Npb25faWQiOiI1N2ZjODkxMi1mNjkyLTQzMDQtOTQ3Yi1hMzliMzhlNmNhNmYiLCJzb3VyY2UiOiJBUEkiLCJzdGFydF9zZXNzaW9uX2RhdGEiOnsibW9kZSI6IkNVU1RPTSIsImF2YXRhcl9pZCI6IjUxM2ZkMWI3LTdlZjktNDY2ZC05YWYyLTM0NGU1MWVlYjgzMyIsImxpdmVraXRfY29uZmlnIjpudWxsfSwiZXhwIjoxNzY3NzIwMDA3fQ.brguRZyU-xQxKakVZ_s6MwND-fdTue-FwHiAuUt7GkQ";
 
       final response = await apiService.post(
         EndPoints.startSession,

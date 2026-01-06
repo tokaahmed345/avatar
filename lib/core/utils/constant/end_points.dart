@@ -9,6 +9,6 @@ class EndPoints {
  static const String startSession=  "$sessionBaseUrl/start";
    static const String sessionBaseUrl = "https://api.liveavatar.com/v1/sessions";
  static const String stopSession=  "$sessionBaseUrl/stop";
-
+static const String keepSessionAlive= "$sessionBaseUrl/keep-alive";
 
 }

@@ -13,10 +13,13 @@ import 'package:avatar/feature/chat/presentation/view_model/cubit/message_cubit.
 import 'package:avatar/feature/home/data/repos/voice_text_repo.dart';
 import 'package:avatar/feature/home/data/repos/voice_text_repo_impl.dart';
 import 'package:avatar/feature/home/presentation/view_model/cubit/voice_text_cubit.dart';
+import 'package:avatar/feature/session/data/repos/keep_session_alive_repos/keep_session_alive_repo.dart';
+import 'package:avatar/feature/session/data/repos/keep_session_alive_repos/keep_session_alive_repo_impl.dart';
 import 'package:avatar/feature/session/data/repos/start_session_repos/start_session_repo.dart';
 import 'package:avatar/feature/session/data/repos/start_session_repos/start_session_repo_impl.dart';
 import 'package:avatar/feature/session/data/repos/stop_session_repos/stop_session_repo.dart';
 import 'package:avatar/feature/session/data/repos/stop_session_repos/stop_session_repo_impl.dart';
+import 'package:avatar/feature/session/presentation/view_model/keep_session_alive_cubit/keep_session_alive_cubit.dart';
 import 'package:avatar/feature/session/presentation/view_model/start_session_cubit/start_session_cubit.dart';
 import 'package:avatar/feature/session/presentation/view_model/stop_session_cubit/stop_session_cubit.dart';
 import 'package:dio/dio.dart';
@@ -66,5 +69,11 @@ Future<void> setUp() async {
   getIt.registerFactory<StopSessionCubit>(
       () => StopSessionCubit(getIt.get<StopSessionRepo>()));
 
+
+
+      getIt.registerLazySingleton<KeepSessionAliveRepo>(() =>KeepSessionAliveRepoImpl (apiService: getIt.get<ApiService>(), prefs: getIt.get<SharedPrefs>(), ));
+
+  getIt.registerFactory<KeepSessionAliveCubit>(
+      () => KeepSessionAliveCubit(getIt.get<KeepSessionAliveRepo>()));
 
 }
