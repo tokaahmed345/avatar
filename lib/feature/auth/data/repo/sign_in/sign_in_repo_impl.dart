@@ -42,9 +42,29 @@ print("LOGIN RESPONSE 👉 $response");
       await sharedPreferences.saveBusinessId(
   result.admin!.business.toString(),
 );
-      await sharedPreferences.saveUserId(
+   await sharedPreferences.saveUserId(
   result.admin!.id.toString(),
 );
+//    await sharedPreferences.saveAvatarId(
+//   result.avatarconfig!.avatar_id.toString(),
+// );
+//    await sharedPreferences.saveContextId(
+//   result.avatarconfig!.context_id.toString(),
+
+// );
+
+final avatarId = result.avatarconfig!.avatar_id;
+final contextId = result.avatarconfig!.context_id;
+
+print("AvatarId from API 👉 $avatarId");
+print("ContextId from API 👉 $contextId");
+
+if (avatarId != null && contextId != null) {
+  await sharedPreferences.saveAvatarId(avatarId);
+  await sharedPreferences.saveContextId(contextId);
+}
+
+
       return right(result);
     } on Failure catch (e) {
       print("Failure: ${e.errMessage}");

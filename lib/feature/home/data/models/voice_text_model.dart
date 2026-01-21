@@ -1,22 +1,22 @@
 
 class VoiceTextModel {
-    String? status;
-    String? answer;
-    dynamic sessionToken;
+    String? sessionId;
+    String? sessionToken;
+    String? message;
 
-    VoiceTextModel({this.status, this.answer, this.sessionToken});
+    VoiceTextModel({this.sessionId, this.sessionToken, this.message});
 
     VoiceTextModel.fromJson(Map<String, dynamic> json) {
-        status = json["status"];
-        answer = json["answer"];
+        sessionId = json["session_id"];
         sessionToken = json["session_token"];
+        message = json["message"];
     }
 
     Map<String, dynamic> toJson() {
         final Map<String, dynamic> _data = <String, dynamic>{};
-        _data["status"] = status;
-        _data["answer"] = answer;
+        _data["session_id"] = sessionId;
         _data["session_token"] = sessionToken;
+        _data["message"] = message;
         return _data;
     }
 }

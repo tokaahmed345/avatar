@@ -12,22 +12,33 @@ class VoiceTextRepoImpl implements VoiceTextRepo {
   VoiceTextRepoImpl({required this.apiService, required this.sharedPreferences});
   
   @override
-  Future<Either<Failure, VoiceTextModel>> voiceText({required String businessId, required String message, required String language, required String userId}) async{
+  Future<Either<Failure, VoiceTextModel>> voiceText({required String businessId, required String avatartId, required String language, required int userId,required String contextId}) async{
 try {
       final access = await sharedPreferences.getAccessToken();
+ 
 
       final response = await apiService.post(
         EndPoints.voiceMessage,
-        data: {"business_id":businessId,"message":message,"language":language,"user_id":userId },
+        data: {"business_id":businessId,"avatar_id":avatartId,"language":language,"admin_id":userId,"context_id": contextId},
                 headers: {"token":access},
 
       );
+      print("avatar 👉 $avatartId");
+      print(" context 👉 $contextId");
 
       print('Access: $access');
+print("VoiceText Response 👉 $response");
 
-      print("LOGIN RESPONSE 👉 $response");
 
       final result = VoiceTextModel.fromJson(response);
+      
+   await sharedPreferences.saveSessionId(
+  result.sessionId!.toString(),
+);
+   await sharedPreferences.saveSessionToken(
+  result.sessionToken!.toString(),
+);
+
 
       return right(result);
     } on Failure catch (e) {

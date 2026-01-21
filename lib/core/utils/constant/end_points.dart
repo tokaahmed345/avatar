@@ -5,7 +5,7 @@ class EndPoints {
   static const String logout= "$baseUrl/api/admin/logout/";
   static const String baseUrlAi = "https://avatarai-Kctyr.ondigitalocean.app";
  static const String message=  "$baseUrlAi/chat/message";
- static const String voiceMessage=  "$baseUrlAi/avatar/message";
+ static const String voiceMessage=  "$baseUrlAi/heygen/session";
  static const String startSession=  "$sessionBaseUrl/start";
    static const String sessionBaseUrl = "https://api.liveavatar.com/v1/sessions";
  static const String stopSession=  "$sessionBaseUrl/stop";

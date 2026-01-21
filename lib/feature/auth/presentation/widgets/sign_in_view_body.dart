@@ -176,7 +176,12 @@ class _SignInViewBodyState extends State<SignInViewBody> {
                               final sharedPrefs = getIt.get<SharedPrefs>();
                               await sharedPrefs.saveIsLoggedIn(true);
                               await sharedPrefs.saveRememberMe(_rememberMe);
+final avatarPreviewUrl =
+      state.userData.avatarconfig?.avatarPreviewUrl;
 
+  if (avatarPreviewUrl != null && avatarPreviewUrl.isNotEmpty) {
+    await sharedPrefs.saveAvatarPreviewUrl(avatarPreviewUrl);
+  }
                               showSnackBarFuction(
                                 context,
                                 "Login successfully",

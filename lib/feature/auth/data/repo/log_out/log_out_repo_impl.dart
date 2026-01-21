@@ -31,6 +31,10 @@ class LogOutRepoImpl implements LogOutRepo {
       await sharedPreferences.removeAccessToken();
       await sharedPreferences.removeRefreshToken();
       await sharedPreferences.saveIsLoggedIn(false);
+      await sharedPreferences.removeAvatarPreviewUrl();
+      await sharedPreferences.removeAvatarId();
+      await sharedPreferences.removeContextId();
+
       return right(result);
     } on Failure catch (e) {
       print("Failure: ${e.errMessage}");

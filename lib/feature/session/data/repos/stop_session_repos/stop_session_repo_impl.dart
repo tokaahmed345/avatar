@@ -14,7 +14,7 @@ final SharedPrefs prefs;
   Future<Either<Failure, StopSessionModel>> stopSession({required String sessionId})async {
 
  try {
-   String  token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYjQ5ZjJhYzkxNjg0YWU3ODM1ZmYxMWFjNjY4MjczOSIsInNlc3Npb25faWQiOiI1N2ZjODkxMi1mNjkyLTQzMDQtOTQ3Yi1hMzliMzhlNmNhNmYiLCJzb3VyY2UiOiJBUEkiLCJzdGFydF9zZXNzaW9uX2RhdGEiOnsibW9kZSI6IkNVU1RPTSIsImF2YXRhcl9pZCI6IjUxM2ZkMWI3LTdlZjktNDY2ZC05YWYyLTM0NGU1MWVlYjgzMyIsImxpdmVraXRfY29uZmlnIjpudWxsfSwiZXhwIjoxNzY3NzIwMDA3fQ.brguRZyU-xQxKakVZ_s6MwND-fdTue-FwHiAuUt7GkQ";
+   String  token =await prefs.getSessionToken() ;
    sessionId=  await prefs.getSessionId();
       final response = await apiService.post(
         EndPoints.stopSession,
@@ -25,6 +25,7 @@ final SharedPrefs prefs;
         headers: {"Authorization":"Bearer $token"},
 
       );
+print(sessionId);
 
       print('Access: $token');
 
