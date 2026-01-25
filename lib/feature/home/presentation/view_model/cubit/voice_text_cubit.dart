@@ -8,9 +8,9 @@ part 'voice_text_state.dart';
 class VoiceTextCubit extends Cubit<VoiceTextState> {
   VoiceTextCubit(this.voiceTextRepo) : super(VoiceTextInitial());
      final VoiceTextRepo voiceTextRepo;
-  Future<void>sendVoiceText({required String businessId,required String avatartId,required String language,required int userId,required String contextId})async{
+  Future<void>sendVoiceText({required String businessId,required String avatartId,required String language,required int userId,required String contextId,required String voiceId})async{
     emit(VoiceTextLoading());
-final data= await voiceTextRepo.voiceText(businessId: businessId, avatartId: avatartId, language: language, userId: userId,contextId: contextId);
+final data= await voiceTextRepo.voiceText(businessId: businessId, avatartId: avatartId, language: language, userId: userId,contextId: contextId,voiceId: voiceId );
  data.fold((failure)=>emit(VoiceTextFailure(errorMessage: failure.errMessage)),(success)=>emit(VoiceTextSuccess( voiceText: success)) );
  
   } 

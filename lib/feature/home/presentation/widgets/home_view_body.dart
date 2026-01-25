@@ -54,7 +54,7 @@ class _HomeViewBodyState extends State<HomeViewBody>
   int? userId;
   String? avatarId;
   String? contextId;
-
+String? voiceId;
   // ================= LIVEKIT =================
   Room? _room;
   RemoteVideoTrack? _remoteVideoTrack;
@@ -77,12 +77,12 @@ class _HomeViewBodyState extends State<HomeViewBody>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       businessId = await sharedPrefs.getBusinessId();
-      userId = int.parse(await sharedPrefs.getUserId()!);
+      userId = int.parse(await sharedPrefs.getUserId());
       avatarPreviewUrl = await sharedPrefs.getAvatarPreviewUrl();
 
       avatarId = await sharedPrefs.getAvatarId();
       contextId = await sharedPrefs.getContextId();
-
+voiceId=await sharedPrefs.getVoiceId();
       if (mounted
       // &&
       //     businessId!.isNotEmpty &&
@@ -94,6 +94,7 @@ class _HomeViewBodyState extends State<HomeViewBody>
         print("context: $contextId");
         print("acvatar: $avatarId");
         print("acvatar: $userId");
+        // print("acvatar: $voiceId");
 
         _startListening();
       }
@@ -327,6 +328,7 @@ class _HomeViewBodyState extends State<HomeViewBody>
             _canSendVoiceText) {
           _canSendVoiceText = false;
           _isSendingVoiceText = false;
+  
           context
               .read<VoiceTextCubit>()
               .sendVoiceText(
@@ -334,7 +336,7 @@ class _HomeViewBodyState extends State<HomeViewBody>
                 avatartId: avatarId!,
                 language: detectedLanguage,
                 userId: userId!,
-                contextId: contextId!,
+                contextId: contextId!, voiceId: voiceId!, 
               )
               .whenComplete(() {
                 _stopListening();
@@ -412,7 +414,7 @@ class _HomeViewBodyState extends State<HomeViewBody>
         return CachedNetworkImage(
           imageUrl: avatarPreviewUrl!,
           fit: BoxFit.cover,
-          placeholder: (context, url) => SizedBox(),
+          placeholder: (context, url) =>               Image.asset(AppAssets.homeBackground, fit: BoxFit.cover),
           errorWidget: (context, url, error) =>
               Image.asset(AppAssets.homeBackground, fit: BoxFit.cover),
         );
@@ -523,7 +525,7 @@ class _HomeViewBodyState extends State<HomeViewBody>
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  message,
+               message   ,
                   style: TextStyle(color: AppColors.whiteColor),
                 ),
                 backgroundColor: AppColors.redColor,

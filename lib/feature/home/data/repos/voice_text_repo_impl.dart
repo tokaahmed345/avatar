@@ -12,14 +12,14 @@ class VoiceTextRepoImpl implements VoiceTextRepo {
   VoiceTextRepoImpl({required this.apiService, required this.sharedPreferences});
   
   @override
-  Future<Either<Failure, VoiceTextModel>> voiceText({required String businessId, required String avatartId, required String language, required int userId,required String contextId}) async{
+  Future<Either<Failure, VoiceTextModel>> voiceText({required String businessId, required String avatartId, required String language, required int userId,required String contextId,required String voiceId}) async{
 try {
       final access = await sharedPreferences.getAccessToken();
  
 
       final response = await apiService.post(
         EndPoints.voiceMessage,
-        data: {"business_id":businessId,"avatar_id":avatartId,"language":language,"admin_id":userId,"context_id": contextId},
+        data: {"business_id":businessId,"avatar_id":avatartId,"language":language,"admin_id":userId,"context_id": contextId,"voice_id":voiceId},
                 headers: {"token":access},
 
       );

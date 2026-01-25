@@ -183,5 +183,20 @@ class SharedPrefs {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_sessionToken) ?? "";
   }
+     Future<void> saveVoiceId(String voiceId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_voiceIdKey, voiceId);
+  }
+
+  Future<String> getVoiceId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_voiceIdKey) ?? "";
+  }
 }
+
+
+
+
+
+
 

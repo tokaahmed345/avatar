@@ -35,29 +35,29 @@ class SignInModel {
 }
 
 class Avatarconfig {
-    String? avatar_id;
+    String? avatarId;
     String? avatarName;
     String? avatarPreviewUrl;
-    String? voiceUuidHeygen;
-    String? context_id;
+    String? contextId;
+    String? voiceId;
 
-    Avatarconfig({this.avatar_id, this.avatarName, this.avatarPreviewUrl, this.voiceUuidHeygen, this.context_id});
+    Avatarconfig({this.avatarId, this.avatarName, this.avatarPreviewUrl, this.contextId, this.voiceId});
 
     Avatarconfig.fromJson(Map<String, dynamic> json) {
-        avatar_id = json["avatar_id"];
+        avatarId = json["avatar_id"];
         avatarName = json["avatar_name"];
         avatarPreviewUrl = json["avatar_preview_url"];
-        voiceUuidHeygen = json["voice_uuid_heygen"];
-        context_id = json["context_id"];
+        contextId = json["context_id"];
+        voiceId = json["voice_id"];
     }
 
     Map<String, dynamic> toJson() {
         final Map<String, dynamic> _data = <String, dynamic>{};
-        _data["avatar_id"] = avatar_id;
+        _data["avatar_id"] = avatarId;
         _data["avatar_name"] = avatarName;
         _data["avatar_preview_url"] = avatarPreviewUrl;
-        _data["voice_uuid_heygen"] = voiceUuidHeygen;
-        _data["context_id"] = context_id;
+        _data["context_id"] = contextId;
+        _data["voice_id"] = voiceId;
         return _data;
     }
 }

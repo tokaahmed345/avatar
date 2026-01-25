@@ -53,8 +53,10 @@ print("LOGIN RESPONSE 👉 $response");
 
 // );
 
-final avatarId = result.avatarconfig!.avatar_id;
-final contextId = result.avatarconfig!.context_id;
+final avatarId = result.avatarconfig!.avatarId;
+final contextId = result.avatarconfig!.contextId;
+final voiceId = result.avatarconfig!.voiceId;
+
 
 print("AvatarId from API 👉 $avatarId");
 print("ContextId from API 👉 $contextId");
@@ -62,6 +64,8 @@ print("ContextId from API 👉 $contextId");
 if (avatarId != null && contextId != null) {
   await sharedPreferences.saveAvatarId(avatarId);
   await sharedPreferences.saveContextId(contextId);
+  await sharedPreferences.saveVoiceId(voiceId!);
+
 }
 
 
