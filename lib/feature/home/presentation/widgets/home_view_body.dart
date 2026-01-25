@@ -38,7 +38,7 @@ class _HomeViewBodyState extends State<HomeViewBody>
   bool _isListening = false;
   bool _isRestarting = false;
   bool _isSendingVoiceText = false;
-
+bool _isMuted = false;
   // ================= SESSION =================
   bool _isSessionActive = false;
   bool _keepAliveCalled = false;
@@ -62,6 +62,31 @@ String? voiceId;
   LocalAudioTrack? _localAudioTrack;
 
   // ================= LIFECYCLE =================
+  @override
+void didChangeAppLifecycleState(AppLifecycleState state) {
+  super.didChangeAppLifecycleState(state);
+
+  if (state == AppLifecycleState.resumed) {
+
+    _isMuted = false;
+
+    if (_isSessionActive) {
+      _toggleMuteAvatar(false);
+    }
+
+    if (!_isListening && !isChatOpen && !_isRestarting) {
+      _resumeListening();
+    }
+
+    setState(() {});
+  }
+
+  if (state == AppLifecycleState.paused ||
+      state == AppLifecycleState.inactive) {
+    _stopListening();
+  }
+}
+
   @override
   void initState() {
     super.initState();
@@ -90,10 +115,10 @@ voiceId=await sharedPrefs.getVoiceId();
       //     avatarId!.isNotEmpty &&
       // contextId!.isNotEmpty
       ) {
-        print("businessId: $businessId");
-        print("context: $contextId");
-        print("acvatar: $avatarId");
-        print("acvatar: $userId");
+        // print("businessId: $businessId");
+        // print("context: $contextId");
+        // print("acvatar: $avatarId");
+        // print("acvatar: $userId");
         // print("acvatar: $voiceId");
 
         _startListening();
@@ -119,6 +144,27 @@ voiceId=await sharedPrefs.getVoiceId();
       }
     }
   }
+void _toggleMic() {
+  if (_isMuted) {
+    _isMuted = false;
+
+    _resumeListening();
+
+    if (_isSessionActive) {
+      _toggleMuteAvatar(false);
+    }
+  } else {
+    _isMuted = true;
+
+    _stopListening();
+
+    if (_isSessionActive) {
+      _toggleMuteAvatar(true);
+    }
+  }
+
+  setState(() {});
+}
 
   void _startKeepAliveTimer(String sessionId) {
     _keepAliveTimer?.cancel();
@@ -168,103 +214,103 @@ voiceId=await sharedPrefs.getVoiceId();
     });
   }
 
-  void _showEndSessionDialog() async {
-    showDialog(
-      context: context,
-      builder: (_) => Center(
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            width: 300,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: AppColors.whiteColor.withOpacity(0.1),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.blackColor.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  "End Session",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.whiteColor,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  "Do you want to cancel the session?",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white70),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white24,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 24,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        "Cancel",
-                        style: AppStyle.text18.copyWith(
-                          color: AppColors.whiteColor,
-                        ),
-                      ),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 24,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        final sessionId = await sharedPrefs.getSessionId();
-                        if (sessionId != null) {
-                          context.read<StopSessionCubit>().stopSession(
-                            sessionId: sessionId,
-                          );
-                        }
-                      },
-                      child: Text(
-                        "End",
-                        style: AppStyle.text18.copyWith(
-                          color: AppColors.whiteColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // void _showEndSessionDialog() async {
+  //   showDialog(
+  //     context: context,
+  //     builder: (_) => Center(
+  //       child: Material(
+  //         color: Colors.transparent,
+  //         child: Container(
+  //           width: 300,
+  //           padding: const EdgeInsets.all(24),
+  //           decoration: BoxDecoration(
+  //             borderRadius: BorderRadius.circular(20),
+  //             color: AppColors.whiteColor.withOpacity(0.1),
+  //             border: Border.all(color: Colors.white.withOpacity(0.2)),
+  //             boxShadow: [
+  //               BoxShadow(
+  //                 color: AppColors.blackColor.withOpacity(0.2),
+  //                 blurRadius: 10,
+  //                 offset: const Offset(0, 5),
+  //               ),
+  //             ],
+  //           ),
+  //           child: Column(
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               const Text(
+  //                 "End Session",
+  //                 style: TextStyle(
+  //                   fontSize: 20,
+  //                   fontWeight: FontWeight.bold,
+  //                   color: AppColors.whiteColor,
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 16),
+  //               const Text(
+  //                 "Do you want to cancel the session?",
+  //                 textAlign: TextAlign.center,
+  //                 style: TextStyle(color: Colors.white70),
+  //               ),
+  //               const SizedBox(height: 24),
+  //               Row(
+  //                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //                 children: [
+  //                   ElevatedButton(
+  //                     style: ElevatedButton.styleFrom(
+  //                       backgroundColor: Colors.white24,
+  //                       padding: const EdgeInsets.symmetric(
+  //                         vertical: 12,
+  //                         horizontal: 24,
+  //                       ),
+  //                       shape: RoundedRectangleBorder(
+  //                         borderRadius: BorderRadius.circular(12),
+  //                       ),
+  //                     ),
+  //                     onPressed: () => Navigator.pop(context),
+  //                     child: Text(
+  //                       "Cancel",
+  //                       style: AppStyle.text18.copyWith(
+  //                         color: AppColors.whiteColor,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                   ElevatedButton(
+  //                     style: ElevatedButton.styleFrom(
+  //                       backgroundColor: AppColors.primary,
+  //                       padding: const EdgeInsets.symmetric(
+  //                         vertical: 12,
+  //                         horizontal: 24,
+  //                       ),
+  //                       shape: RoundedRectangleBorder(
+  //                         borderRadius: BorderRadius.circular(12),
+  //                       ),
+  //                     ),
+  //                     onPressed: () async {
+  //                       Navigator.pop(context);
+  //                       final sessionId = await sharedPrefs.getSessionId();
+  //                       if (sessionId != null) {
+  //                         context.read<StopSessionCubit>().stopSession(
+  //                           sessionId: sessionId,
+  //                         );
+  //                       }
+  //                     },
+  //                     child: Text(
+  //                       "End",
+  //                       style: AppStyle.text18.copyWith(
+  //                         color: AppColors.whiteColor,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   void _stopListening() {
     if (_isListening) {
@@ -287,7 +333,7 @@ voiceId=await sharedPrefs.getVoiceId();
       onStatus: (status) async {
         if (!mounted) return;
 
-        if ((status == 'done' || status == 'notListening') && !isChatOpen) {
+        if ((status == 'done' || status == 'notListening') && !isChatOpen && !_isMuted) {
           _waveController.stop();
           setState(() => _isListening = false);
 
@@ -360,53 +406,104 @@ voiceId=await sharedPrefs.getVoiceId();
     return RegExp(r'[\u0600-\u06FF]').hasMatch(text) ? 'ar' : 'en';
   }
 
+  // Future<void> _connectLiveKit(Data data) async {
+  //   if (_room != null) return;
+
+  //   try {
+  //     final room = Room();
+  //     await room.connect(
+  //       data.livekitUrl!,
+  //       data.livekitClientToken!,
+  //       roomOptions: const RoomOptions(adaptiveStream: true),
+  //     );
+
+  //     _room = room;
+  //     _isSessionActive = true;
+
+  //     // Publish audio (your mic)
+  //     _localAudioTrack = await LocalAudioTrack.create();
+  //     await room.localParticipant?.publishAudioTrack(_localAudioTrack!);
+
+  //     // Subscribe to existing remote video tracks if already published
+  //     room.remoteParticipants.values.forEach((participant) {
+  //       for (var pub in participant.subscribedTracks) {
+  //         if (pub.track is RemoteVideoTrack) {
+  //           setState(() {
+  //             _remoteVideoTrack = pub.track as RemoteVideoTrack;
+  //           });
+  //           break;
+  //         }
+  //       }
+  //     });
+
+  //     // Listen for new subscribed tracks
+  //     _roomListener = room.createListener()
+  //       ..on<TrackSubscribedEvent>((event) {
+  //         if (event.track is RemoteVideoTrack) {
+  //           setState(() {
+  //             _remoteVideoTrack = event.track as RemoteVideoTrack;
+  //           });
+  //         }
+  //         if (event.track is RemoteAudioTrack) {
+  //           debugPrint('Remote audio subscribed');
+  //         }
+  //       });
+  //   } catch (e) {
+  //     debugPrint('LiveKit connection error: $e');
+  //     _endSession();
+  //   }
+  // }
   Future<void> _connectLiveKit(Data data) async {
-    if (_room != null) return;
+  if (_room != null) return;
 
-    try {
-      final room = Room();
-      await room.connect(
-        data.livekitUrl!,
-        data.livekitClientToken!,
-        roomOptions: const RoomOptions(adaptiveStream: true),
-      );
+  try {
+    final room = Room();
+    await room.connect(
+      data.livekitUrl!,
+      data.livekitClientToken!,
+      roomOptions: const RoomOptions(adaptiveStream: true),
+    );
 
-      _room = room;
-      _isSessionActive = true;
+    _room = room;
+    _isSessionActive = true;
 
-      // Publish audio (your mic)
-      _localAudioTrack = await LocalAudioTrack.create();
-      await room.localParticipant?.publishAudioTrack(_localAudioTrack!);
+    _localAudioTrack = await LocalAudioTrack.create();
+    await room.localParticipant?.publishAudioTrack(_localAudioTrack!);
 
-      // Subscribe to existing remote video tracks if already published
-      room.remoteParticipants.values.forEach((participant) {
-        for (var pub in participant.subscribedTracks) {
-          if (pub.track is RemoteVideoTrack) {
-            setState(() {
-              _remoteVideoTrack = pub.track as RemoteVideoTrack;
-            });
-            break;
-          }
+    room.remoteParticipants.values.forEach((participant) {
+      for (var pub in participant.subscribedTracks) {
+        if (pub.track is RemoteVideoTrack) {
+          setState(() {
+            _remoteVideoTrack = pub.track as RemoteVideoTrack;
+          });
+          break;
+        }
+      }
+    });
+
+    _roomListener = room.createListener()
+      ..on<TrackSubscribedEvent>((event) {
+        if (event.track is RemoteVideoTrack) {
+          setState(() {
+            _remoteVideoTrack = event.track as RemoteVideoTrack;
+          });
         }
       });
+    Timer(const Duration(seconds: 40), () async {
+      if (_isSessionActive) {
+        final sessionId = await sharedPrefs.getSessionId();
+        if (sessionId != null) {
+          context.read<StopSessionCubit>().stopSession(sessionId: sessionId);
+        }
+      }
+    });
 
-      // Listen for new subscribed tracks
-      _roomListener = room.createListener()
-        ..on<TrackSubscribedEvent>((event) {
-          if (event.track is RemoteVideoTrack) {
-            setState(() {
-              _remoteVideoTrack = event.track as RemoteVideoTrack;
-            });
-          }
-          if (event.track is RemoteAudioTrack) {
-            debugPrint('Remote audio subscribed');
-          }
-        });
-    } catch (e) {
-      debugPrint('LiveKit connection error: $e');
-      _endSession();
-    }
+  } catch (e) {
+    debugPrint('LiveKit connection error: $e');
+    _endSession();
   }
+}
+
 
   Widget buildAvatarView() {
     if (_remoteVideoTrack == null) {
@@ -550,9 +647,9 @@ voiceId=await sharedPrefs.getVoiceId();
                       GlassIconButton(
                         icon: Icons.close,
                         onTap: () {
-                          if (_isSessionActive) {
-                            _showEndSessionDialog();
-                          } else {
+                          // if (_isSessionActive) {
+                          //   _showEndSessionDialog();
+                          // } else {
                             showDialog(
                               context: context,
                               builder: (_) => BlocProvider(
@@ -561,7 +658,7 @@ voiceId=await sharedPrefs.getVoiceId();
                               ),
                             );
                           }
-                        },
+                        
                       ),
                       // _isSessionActive
                       //     ? GlassIconButton(
@@ -606,14 +703,20 @@ voiceId=await sharedPrefs.getVoiceId();
                       //   icon: Icons.mic,
                       //   onTap: _isListening ? null : _startListening,
                       // ),
-                      GlassIconButton(
-                        icon: !_isSessionActive
-                            ? Icons.mic
-                            : (isChatOpen ? Icons.mic_off : Icons.mic),
-                        onTap: (!_isSessionActive)
-                            ? null
-                            : (isChatOpen ? null : _startListening),
-                      ),
+                      // GlassIconButton(
+                      //   icon: !_isSessionActive
+                      //       ? Icons.mic
+                      //       : (isChatOpen ? Icons.mic_off : Icons.mic),
+                      //   onTap: (!_isSessionActive)
+                      //       ? null
+                      //       : (isChatOpen ? null : _startListening),
+                      // ),
+                     GlassIconButton(
+  icon: _isMuted ? Icons.mic_off : Icons.mic,
+  onTap: isChatOpen ? null : _toggleMic,
+),
+
+
 
                       const SizedBox(width: 24),
                       buildWave(),
