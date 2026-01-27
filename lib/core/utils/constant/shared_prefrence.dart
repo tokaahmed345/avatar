@@ -13,6 +13,7 @@ class SharedPrefs {
   static const String _contextIdKey = 'context_id'; 
   static const String _ApiKey = 'Api_key'; 
   static const String _sessionToken = 'sessionToken'; 
+  static const String _logoKey = 'logo'; 
 
 
   // ==================== Avatar Preview ====================
@@ -29,6 +30,10 @@ class SharedPrefs {
   Future<void> removeAvatarPreviewUrl() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_avatarPreviewKey);
+  }
+   Future<void> removelogo() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_logoKey);
   }
   Future<void> removeAvatarId() async {
     final prefs = await SharedPreferences.getInstance();
@@ -192,6 +197,17 @@ class SharedPrefs {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_voiceIdKey) ?? "";
   }
+
+     Future<void> saveLogo(String logo) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_logoKey, logo);
+  }
+
+  Future<String> getLogo() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_logoKey) ?? "";
+  }
+
 }
 
 

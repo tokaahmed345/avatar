@@ -47,7 +47,7 @@ bool _isMuted = false;
   // ================= ANIMATION =================
   late AnimationController _waveController;
   String? avatarPreviewUrl;
-
+String? logo;
   // ================= STORAGE =================
   final SharedPrefs sharedPrefs = getIt.get<SharedPrefs>();
   String? businessId;
@@ -104,7 +104,7 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
       businessId = await sharedPrefs.getBusinessId();
       userId = int.parse(await sharedPrefs.getUserId());
       avatarPreviewUrl = await sharedPrefs.getAvatarPreviewUrl();
-
+logo=await sharedPrefs.getLogo();
       avatarId = await sharedPrefs.getAvatarId();
       contextId = await sharedPrefs.getContextId();
 voiceId=await sharedPrefs.getVoiceId();
@@ -182,36 +182,83 @@ void _toggleMic() {
     _keepAliveTimer = null;
   }
 
-  void _endSession() {
+ Future<void>  _endSession()async {
+    // _keepAliveCalled = false;
+    // _isRestarting = true;
+    // _isSessionActive = false;
+    // _localAudioTrack?.stop();
+    // _localAudioTrack?.dispose();
+    // _localAudioTrack = null;
+    // _canSendVoiceText = true;
+    // _isSendingVoiceText = false;
+    // _speech.stop();
+    // _waveController.stop();
+
+    // _roomListener?.dispose();
+    // _room?.disconnect();
+    // _remoteVideoTrack?.dispose();
+    // _stopKeepAliveTimer();
+
+    // _room = null;
+    // _roomListener = null;
+    // _remoteVideoTrack = null;
+
+    // setState(() {
+    //   _isListening = false;
+    //   liveText = '';
+    // });
+
+    // Future.delayed(const Duration(milliseconds: 200), () {
+    //   _isRestarting = false;
+    //   _startListening();
+    // });
     _keepAliveCalled = false;
-    _isRestarting = true;
-    _isSessionActive = false;
-    _localAudioTrack?.stop();
-    _localAudioTrack?.dispose();
-    _localAudioTrack = null;
-    _canSendVoiceText = true;
-    _isSendingVoiceText = false;
+  _isRestarting = true;
+  _isSessionActive = false;
+  _canSendVoiceText = true;
+  _isSendingVoiceText = false;
+
+  if (_isListening) {
     _speech.stop();
     _waveController.stop();
+    _isListening = false;
+  }
 
+  try {
+    await _localAudioTrack?.stop();
+    await _localAudioTrack?.dispose();
+  } catch (_) {}
+  _localAudioTrack = null;
+
+  try {
     _roomListener?.dispose();
-    _room?.disconnect();
-    _remoteVideoTrack?.dispose();
-    _stopKeepAliveTimer();
+  } catch (_) {}
+  _roomListener = null;
 
-    _room = null;
-    _roomListener = null;
-    _remoteVideoTrack = null;
+  if (_room != null) {
+    try {
+      await _room!.disconnect().timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint("Failed to disconnect room safely: $e");
+    }
+  }
+  _room = null;
 
-    setState(() {
-      _isListening = false;
-      liveText = '';
-    });
+  try {
+    await _remoteVideoTrack?.dispose();
+  } catch (_) {}
+  _remoteVideoTrack = null;
 
-    Future.delayed(const Duration(milliseconds: 200), () {
-      _isRestarting = false;
-      _startListening();
-    });
+  _stopKeepAliveTimer();
+
+  setState(() {
+    liveText = '';
+  });
+
+  Future.delayed(const Duration(milliseconds: 200), () {
+    _isRestarting = false;
+    _startListening();
+  });
   }
 
   // void _showEndSessionDialog() async {
@@ -453,6 +500,7 @@ void _toggleMic() {
   //     _endSession();
   //   }
   // }
+  
   Future<void> _connectLiveKit(Data data) async {
   if (_room != null) return;
 
@@ -489,7 +537,7 @@ void _toggleMic() {
           });
         }
       });
-    Timer(const Duration(seconds: 40), () async {
+    Timer(const Duration(seconds: 60), () async {
       if (_isSessionActive) {
         final sessionId = await sharedPrefs.getSessionId();
         if (sessionId != null) {
@@ -511,13 +559,14 @@ void _toggleMic() {
         return CachedNetworkImage(
           imageUrl: avatarPreviewUrl!,
           fit: BoxFit.cover,
-          placeholder: (context, url) =>               Image.asset(AppAssets.homeBackground, fit: BoxFit.cover),
-          errorWidget: (context, url, error) =>
-              Image.asset(AppAssets.homeBackground, fit: BoxFit.cover),
+          placeholder: (context, url) =>   Center(child: CircularProgressIndicator(color: AppColors.primary,),),
+          errorWidget: (context, url, error) =>SizedBox()
+              // Image.asset(AppAssets.homeBackground, fit: BoxFit.cover),
         );
       }
 
-      return Image.asset(AppAssets.homeBackground, fit: BoxFit.cover);
+      // return Image.asset(AppAssets.homeBackground, fit: BoxFit.cover);
+      return SizedBox();
     }
     return SizedBox.expand(
       child: VideoTrackRenderer(_remoteVideoTrack!, fit: VideoViewFit.cover),
@@ -558,6 +607,7 @@ void _toggleMic() {
           listener: (context, state) async {
             if (state is StartSessionSuccess &&
                 state.startSession.data != null) {
+
               _connectLiveKit(state.startSession.data!);
               if (!_keepAliveCalled) {
                 final sessionId = await sharedPrefs.getSessionId();
@@ -667,8 +717,38 @@ void _toggleMic() {
                       //             ? _showEndSessionDialog
                       //             : null,
                       //       )
-                      //     : SizedBox(),
+                      //  
+                      //   : SizedBox(),
+                   Container(
+  decoration: BoxDecoration(
+    shape: BoxShape.circle,
+    border: Border.all(
+      color: Colors.white.withOpacity(0.6), 
+      width: 2,
+    ),
+  ),
+  child:CircleAvatar(
+  radius: 28,
+  backgroundColor: AppColors.blueGrey, 
+  child: ClipOval(
+    child: CachedNetworkImage(
+      imageUrl:logo??"" ,
+      width: 56, 
+      height: 56,
+      fit: BoxFit.cover,
+      placeholder: (context, url) => Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      ),
+      errorWidget: (context, url, error) => SizedBox(),
+    ),
+  ),
+)
+
+),
+
+                    
                     ],
+
                   ),
                 ),
 

@@ -4,16 +4,20 @@ class SignInModel {
     String? refresh;
     int? deviceCount;
     Admin? admin;
+    Business? business;
+    String? businessLogo;
     Avatarconfig? avatarconfig;
     String? heygenApiKey;
 
-    SignInModel({this.access, this.refresh, this.deviceCount, this.admin, this.avatarconfig, this.heygenApiKey});
+    SignInModel({this.access, this.refresh, this.deviceCount, this.admin, this.business, this.businessLogo, this.avatarconfig, this.heygenApiKey});
 
     SignInModel.fromJson(Map<String, dynamic> json) {
         access = json["access"];
         refresh = json["refresh"];
         deviceCount = json["device_count"];
         admin = json["admin"] == null ? null : Admin.fromJson(json["admin"]);
+        business = json["business"] == null ? null : Business.fromJson(json["business"]);
+        businessLogo = json["business_logo"];
         avatarconfig = json["avatarconfig"] == null ? null : Avatarconfig.fromJson(json["avatarconfig"]);
         heygenApiKey = json["heygen_api_key"];
     }
@@ -26,6 +30,10 @@ class SignInModel {
         if(admin != null) {
             _data["admin"] = admin?.toJson();
         }
+        if(business != null) {
+            _data["business"] = business?.toJson();
+        }
+        _data["business_logo"] = businessLogo;
         if(avatarconfig != null) {
             _data["avatarconfig"] = avatarconfig?.toJson();
         }
@@ -58,6 +66,43 @@ class Avatarconfig {
         _data["avatar_preview_url"] = avatarPreviewUrl;
         _data["context_id"] = contextId;
         _data["voice_id"] = voiceId;
+        return _data;
+    }
+}
+
+class Business {
+    int? id;
+    String? nameEn;
+    String? nameAr;
+    String? logo;
+    String? category;
+    String? country;
+    String? city;
+    String? domainUrl;
+
+    Business({this.id, this.nameEn, this.nameAr, this.logo, this.category, this.country, this.city, this.domainUrl});
+
+    Business.fromJson(Map<String, dynamic> json) {
+        id = json["id"];
+        nameEn = json["name_en"];
+        nameAr = json["name_ar"];
+        logo = json["logo"];
+        category = json["category"];
+        country = json["country"];
+        city = json["city"];
+        domainUrl = json["domain_url"];
+    }
+
+    Map<String, dynamic> toJson() {
+        final Map<String, dynamic> _data = <String, dynamic>{};
+        _data["id"] = id;
+        _data["name_en"] = nameEn;
+        _data["name_ar"] = nameAr;
+        _data["logo"] = logo;
+        _data["category"] = category;
+        _data["country"] = country;
+        _data["city"] = city;
+        _data["domain_url"] = domainUrl;
         return _data;
     }
 }
