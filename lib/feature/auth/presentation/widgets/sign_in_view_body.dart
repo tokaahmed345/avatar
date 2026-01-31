@@ -182,14 +182,14 @@ final avatarPreviewUrl =
   if (avatarPreviewUrl != null && avatarPreviewUrl.isNotEmpty) {
     await sharedPrefs.saveAvatarPreviewUrl(avatarPreviewUrl);
   }
-                              showSnackBarFuction(
-                                context,
-                                "Login successfully",
-                                isError: false,
-                              ).then((_) {
+                              // showSnackBarFuction(
+                              //   context,
+                              //   "Login successfully",
+                              //   isError: false,
+                              // ).then((_) {
                                 if (context.mounted)
                                   context.go(RoutesName.home);
-                              });
+                              // });
 
                               // if (_rememberMe) {
                               //   await sharedPrefs.saveIsLoggedIn(true);

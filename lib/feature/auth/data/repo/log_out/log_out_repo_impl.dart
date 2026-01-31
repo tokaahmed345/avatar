@@ -35,6 +35,7 @@ class LogOutRepoImpl implements LogOutRepo {
       await sharedPreferences.removeAvatarId();
       await sharedPreferences.removeContextId();
       await sharedPreferences.removelogo();
+      await sharedPreferences.removeVoiceId();
 
       return right(result);
     } on Failure catch (e) {

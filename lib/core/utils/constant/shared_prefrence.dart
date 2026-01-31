@@ -43,6 +43,10 @@ class SharedPrefs {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_contextIdKey);
   }
+      Future<void> removeVoiceId() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_voiceIdKey);
+  }
   Future<void> saveAccessToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_accessKey, token);

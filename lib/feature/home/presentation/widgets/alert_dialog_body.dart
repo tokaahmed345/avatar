@@ -84,7 +84,7 @@ class AlertDialogBody extends StatelessWidget {
     if (state is LogOutSuccess) {
             if (context.mounted) context.go(RoutesName.logIn);
 
-  showSnackBarFuction(context,state.successMessage.detail??"", isError: false);
+  // showSnackBarFuction(context,state.successMessage.detail??"", isError: false);
 
 }
                     },

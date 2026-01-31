@@ -415,6 +415,18 @@ void _toggleMic() {
         setState(() {});
         print("lang: $detectedLanguage");
 
+  // ... الكود الحالي ...
+  liveText = result.recognizedWords;
+  
+  // أضيفي هذه السطور للتأكد من وصول الكلام
+  debugPrint("STT Result: $liveText"); 
+  debugPrint("Is Final: ${result.finalResult}");
+
+  if (result.finalResult && liveText.isNotEmpty) {
+      debugPrint("Sending to Server: $liveText"); // تأكيد الإرسال
+      // ... باقي منطق إرسال الـ Cubit
+  }
+
         if (result.finalResult &&
             liveText.isNotEmpty &&
             !_isSessionActive &&
@@ -634,14 +646,14 @@ void _toggleMic() {
         BlocListener<StopSessionCubit, StopSessionState>(
           listener: (context, state) {
             if (state is StopSessionSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    state.stopSession.message ?? "Stopped Successfully",
-                  ),
-                  backgroundColor: AppColors.success,
-                ),
-              );
+              // ScaffoldMessenger.of(context).showSnackBar(
+              //   SnackBar(
+              //     content: Text(
+              //       state.stopSession.message ?? "Stopped Successfully",
+              //     ),
+              //     backgroundColor: AppColors.success,
+              //   ),
+              // );
               _endSession();
             } else if (state is StopSessionFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -685,7 +697,17 @@ void _toggleMic() {
             child: Stack(
               children: [
                 Positioned.fill(child: buildAvatarView()),
-
+// // داخل الـ Stack في الـ build
+// Positioned(
+//   bottom: 100,
+//   left: 20,
+//   right: 20,
+//   child: Text(
+//     liveText, 
+//     style: TextStyle(color: Colors.white, backgroundColor: Colors.black54),
+//     textAlign: TextAlign.center,
+//   ),
+// ),
                 // TOP BAR
                 Positioned(
                   top: 16,
@@ -721,20 +743,22 @@ void _toggleMic() {
                       //   : SizedBox(),
                    Container(
   decoration: BoxDecoration(
+    color: Colors.transparent,
     shape: BoxShape.circle,
-    border: Border.all(
-      color: Colors.white.withOpacity(0.6), 
-      width: 2,
-    ),
+    // border: Border.all(
+    //   color: Colors.white.withOpacity(0.6), 
+    //   width: 2,
+    // ),
   ),
   child:CircleAvatar(
-  radius: 28,
-  backgroundColor: AppColors.blueGrey, 
+      backgroundColor: Colors.transparent,
+
+  radius: 60,
   child: ClipOval(
     child: CachedNetworkImage(
       imageUrl:logo??"" ,
-      width: 56, 
-      height: 56,
+      width: 140, 
+      height: 140,
       fit: BoxFit.cover,
       placeholder: (context, url) => Center(
         child: CircularProgressIndicator(color: AppColors.primary),
