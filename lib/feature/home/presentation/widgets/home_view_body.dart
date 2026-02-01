@@ -39,6 +39,8 @@ class _HomeViewBodyState extends State<HomeViewBody>
   bool _isRestarting = false;
   bool _isSendingVoiceText = false;
 bool _isMuted = false;
+bool _isAvatarSpeaking = false;
+
   // ================= SESSION =================
   bool _isSessionActive = false;
   bool _keepAliveCalled = false;
@@ -368,98 +370,178 @@ void _toggleMic() {
   }
 
   void _resumeListening() {
-    if (!isChatOpen && !_isListening && !_isRestarting) {
+    if (!isChatOpen && !_isListening && !_isRestarting &&!_isAvatarSpeaking) {
       _startListening();
     }
   }
 
+  // Future<void> _startListening() async {
+  //   if (_isAvatarSpeaking) return;
+  //   if (!mounted || _isListening || _isRestarting || isChatOpen) return;
+
+  //   final available = await _speech.initialize(
+  //     onStatus: (status) async {
+  //       if (!mounted) return;
+  // if (_isAvatarSpeaking && _isListening) {
+  //       _speech.stop();
+  //       _waveController.stop();
+  //       setState(() => _isListening = false);
+  //       return;
+  //     }
+
+  //       if ((status == 'done' || status == 'notListening') && !isChatOpen && !_isMuted) {
+  //         _waveController.stop();
+  //         setState(() => _isListening = false);
+
+  //         if (!_isRestarting) {
+  //           await Future.delayed(const Duration(milliseconds: 150));
+  //           if (mounted && !isChatOpen) _startListening();
+  //         }
+  //       }
+  //     },
+  //     onError: (_) => _waveController.stop(),
+  //   );
+
+  //   if (!available) return;
+
+  //   setState(() => _isListening = true);
+
+  //   _speech.listen(
+  //     listenMode: stt.ListenMode.dictation,
+  //     partialResults: true,
+  //     onResult: (result) {
+  //      if (_isAvatarSpeaking && _isListening) {
+  //       _speech.stop();
+  //       _waveController.stop();
+  //       setState(() => _isListening = false);
+  //       return;
+  //     }
+  //       if (isChatOpen) {
+  //         if (_isListening) {
+  //           _speech.stop();
+  //           _waveController.stop();
+  //           setState(() => _isListening = false);
+  //         }
+  //         return;
+  //       }
+
+  //       liveText = result.recognizedWords;
+  //       detectedLanguage = _detectLanguage(liveText);
+  //       setState(() {});
+  //       print("lang: $detectedLanguage");
+
+  // // ... الكود الحالي ...
+  // liveText = result.recognizedWords;
+  
+  // // أضيفي هذه السطور للتأكد من وصول الكلام
+  // debugPrint("STT Result: $liveText"); 
+  // debugPrint("Is Final: ${result.finalResult}");
+
+  // if (result.finalResult && liveText.isNotEmpty) {
+  //     debugPrint("Sending to Server: $liveText"); // تأكيد الإرسال
+  //     // ... باقي منطق إرسال الـ Cubit
+  // }
+
+  //       if (result.finalResult &&
+  //           liveText.isNotEmpty &&
+  //           !_isSessionActive &&
+  //           _canSendVoiceText) {
+  //         _canSendVoiceText = false;
+  //         _isSendingVoiceText = false;
+  
+  //         context
+  //             .read<VoiceTextCubit>()
+  //             .sendVoiceText(
+  //               businessId: businessId!,
+  //               avatartId: avatarId!,
+  //               language: detectedLanguage,
+  //               userId: userId!,
+  //               contextId: contextId!, voiceId: voiceId!, 
+  //             )
+  //             .whenComplete(() {
+  //               _stopListening();
+  //             });
+  //       }
+  //     },
+  //     onSoundLevelChange: (level) {
+  //       if (isChatOpen) return;
+  //       if (level > 3) {
+  //         if (!_waveController.isAnimating) {
+  //           _waveController.repeat(reverse: true);
+  //         }
+  //       } else {
+  //         _waveController.stop();
+  //       }
+  //     },
+  //   );
+  // }
   Future<void> _startListening() async {
-    if (!mounted || _isListening || _isRestarting || isChatOpen) return;
+  if (!mounted || _isListening || _isRestarting || isChatOpen || _isAvatarSpeaking) return;
 
-    final available = await _speech.initialize(
-      onStatus: (status) async {
-        if (!mounted) return;
+  final available = await _speech.initialize(
+    onStatus: (status) async {
+      if (!mounted) return;
+      if (_isAvatarSpeaking && _isListening) {
+        _speech.stop();
+        _waveController.stop();
+        setState(() => _isListening = false);
+        return;
+      }
 
-        if ((status == 'done' || status == 'notListening') && !isChatOpen && !_isMuted) {
-          _waveController.stop();
-          setState(() => _isListening = false);
+      if ((status == 'done' || status == 'notListening') && !_isRestarting && !isChatOpen && !_isAvatarSpeaking) {
+        await Future.delayed(const Duration(milliseconds: 150));
+        if (mounted) _startListening();
+      }
+    },
+    onError: (_) => _waveController.stop(),
+  );
 
-          if (!_isRestarting) {
-            await Future.delayed(const Duration(milliseconds: 150));
-            if (mounted && !isChatOpen) _startListening();
-          }
-        }
-      },
-      onError: (_) => _waveController.stop(),
-    );
+  if (!available) return;
 
-    if (!available) return;
+  setState(() => _isListening = true);
 
-    setState(() => _isListening = true);
+  _speech.listen(
+    listenMode: stt.ListenMode.dictation,
+    partialResults: true,
+    onResult: (result) {
+      if (_isAvatarSpeaking || isChatOpen) {
+        _speech.stop();
+        _waveController.stop();
+        setState(() => _isListening = false);
+        return;
+      }
 
-    _speech.listen(
-      listenMode: stt.ListenMode.dictation,
-      partialResults: true,
-      onResult: (result) {
-        if (isChatOpen) {
-          if (_isListening) {
-            _speech.stop();
-            _waveController.stop();
-            setState(() => _isListening = false);
-          }
-          return;
-        }
+      liveText = result.recognizedWords;
+      detectedLanguage = _detectLanguage(liveText);
+      setState(() {});
+      
+      if (result.finalResult && liveText.isNotEmpty && !_isSessionActive && _canSendVoiceText) {
+        _canSendVoiceText = false;
+        _isSendingVoiceText = false;
 
-        liveText = result.recognizedWords;
-        detectedLanguage = _detectLanguage(liveText);
-        setState(() {});
-        print("lang: $detectedLanguage");
+        context.read<VoiceTextCubit>().sendVoiceText(
+          businessId: businessId!,
+          avatartId: avatarId!,
+          language: detectedLanguage,
+          userId: userId!,
+          contextId: contextId!,
+          voiceId: voiceId!,
+        ).whenComplete(() {
+          _stopListening();
+        });
+      }
+    },
+    onSoundLevelChange: (level) {
+      if (isChatOpen) return;
+      if (level > 3) {
+        if (!_waveController.isAnimating) _waveController.repeat(reverse: true);
+      } else {
+        _waveController.stop();
+      }
+    },
+  );
+}
 
-  // ... الكود الحالي ...
-  liveText = result.recognizedWords;
-  
-  // أضيفي هذه السطور للتأكد من وصول الكلام
-  debugPrint("STT Result: $liveText"); 
-  debugPrint("Is Final: ${result.finalResult}");
-
-  if (result.finalResult && liveText.isNotEmpty) {
-      debugPrint("Sending to Server: $liveText"); // تأكيد الإرسال
-      // ... باقي منطق إرسال الـ Cubit
-  }
-
-        if (result.finalResult &&
-            liveText.isNotEmpty &&
-            !_isSessionActive &&
-            _canSendVoiceText) {
-          _canSendVoiceText = false;
-          _isSendingVoiceText = false;
-  
-          context
-              .read<VoiceTextCubit>()
-              .sendVoiceText(
-                businessId: businessId!,
-                avatartId: avatarId!,
-                language: detectedLanguage,
-                userId: userId!,
-                contextId: contextId!, voiceId: voiceId!, 
-              )
-              .whenComplete(() {
-                _stopListening();
-              });
-        }
-      },
-      onSoundLevelChange: (level) {
-        if (isChatOpen) return;
-        if (level > 3) {
-          if (!_waveController.isAnimating) {
-            _waveController.repeat(reverse: true);
-          }
-        } else {
-          _waveController.stop();
-        }
-      },
-    );
-  }
 
   String _detectLanguage(String text) {
     return RegExp(r'[\u0600-\u06FF]').hasMatch(text) ? 'ar' : 'en';
@@ -510,9 +592,30 @@ void _toggleMic() {
   //   } catch (e) {
   //     debugPrint('LiveKit connection error: $e');
   //     _endSession();
-  //   }
+/// تتحكم في الميك وSTT بناءً على كلام الأفاتار فقط
+void _handleAvatarSpeaking(bool isSpeaking) {
+  _isAvatarSpeaking = isSpeaking;
+
+  if (_isAvatarSpeaking) {
+    if (_localAudioTrack != null) _localAudioTrack!.mute();
+    if (_isListening) {
+      _speech.stop();
+      _waveController.stop();
+      setState(() => _isListening = false);
+    }
+  } else {
+    if (_localAudioTrack != null) _localAudioTrack!.unmute();
+    if (!_isListening && !_isRestarting && !isChatOpen) {
+      Future.delayed(const Duration(milliseconds: 100), _startListening);
+    }
+  }
+
+  setState(() {});
+}
+
   // }
-  
+
+
   Future<void> _connectLiveKit(Data data) async {
   if (_room != null) return;
 
@@ -541,14 +644,34 @@ void _toggleMic() {
       }
     });
 
-    _roomListener = room.createListener()
-      ..on<TrackSubscribedEvent>((event) {
-        if (event.track is RemoteVideoTrack) {
-          setState(() {
-            _remoteVideoTrack = event.track as RemoteVideoTrack;
-          });
-        }
-      });
+    // _roomListener = room.createListener()
+    //   ..on<TrackSubscribedEvent>((event) {
+    //     if (event.track is RemoteVideoTrack) {
+    //       setState(() {
+    //         _remoteVideoTrack = event.track as RemoteVideoTrack;
+    //       });
+    //     }
+       
+    //   });
+ _roomListener = room.createListener()
+..on<TrackSubscribedEvent>((event) {
+  if (event.track is RemoteAudioTrack) {
+    debugPrint("Avatar audio subscribed 🎤");
+    _handleAvatarSpeaking(true);
+  }
+  if (event.track is RemoteVideoTrack) {
+    setState(() => _remoteVideoTrack = event.track as RemoteVideoTrack);
+  }
+})
+..on<TrackUnsubscribedEvent>((event) {
+  if (event.track is RemoteAudioTrack) {
+    debugPrint("Avatar audio unsubscribed 🛑");
+    _handleAvatarSpeaking(false);
+  }
+});
+
+
+      
     Timer(const Duration(seconds: 60), () async {
       if (_isSessionActive) {
         final sessionId = await sharedPrefs.getSessionId();
