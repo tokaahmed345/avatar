@@ -97,10 +97,7 @@
   <pre><code>Flutter · Dart · LiveKit · Live Avatar Integration (HeyGen) · Speech-to-Text · Cubit</code></pre>
 
   <hr>
-  <div class="footer">
-    Built by Toka Ahmed Elsharkawy — Flutter Developer<br>
-    <a href="https://github.com/tokaahmed345">github.com/tokaahmed345</a>
-  </div>
+
 
 </div>
 </body>
